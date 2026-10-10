@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarAnalisisFoto, estimarConFoto } from '../engine/foto.js';
+import { validarAnalisisFoto, estimarConFoto, validarEntradaFoto } from '../engine/foto.js';
 import { TARIFAS_RESPALDO } from '../engine/tarifas.js';
 
 const analisisBueno = () => ({
@@ -94,4 +94,39 @@ test('estimación sin m² válidos: total null (la foto no mide superficies)', (
     tarifas: TARIFAS_RESPALDO,
   });
   assert.equal(e.total, null);
+});
+
+// ---- Entrada que llega de la web al flujo «Analizar foto» ----
+const entrada = (cambios = {}) => ({
+  idioma: 'es',
+  estancia: { tipo: 'bano', m2: 6, calidad: 'media', extras: [] },
+  imagen: { mime: 'image/jpeg', base64: '/9j/4AAQSkZJRgABAQ' },
+  ...cambios,
+});
+
+test('entrada de foto válida', () => {
+  const r = validarEntradaFoto(entrada());
+  assert.equal(r.ok, true);
+  assert.equal(r.idioma, 'es');
+  assert.equal(r.estancia.tipo, 'bano');
+  assert.equal(r.imagen.mime, 'image/jpeg');
+});
+
+test('entrada de foto: tipo de imagen no permitido, vacía o demasiado grande', () => {
+  assert.equal(validarEntradaFoto(entrada({ imagen: { mime: 'application/pdf', base64: 'abc' } })).ok, false);
+  assert.equal(validarEntradaFoto(entrada({ imagen: { mime: 'image/png', base64: '' } })).ok, false);
+  assert.equal(validarEntradaFoto(entrada({ imagen: { mime: 'image/png', base64: 'A'.repeat(2_900_000) } })).ok, false);
+  assert.equal(validarEntradaFoto(entrada({ imagen: { mime: 'image/png', base64: 'no es base64!!' } })).ok, false);
+});
+
+test('entrada de foto: estancia o idioma desconocidos', () => {
+  assert.equal(validarEntradaFoto(entrada({ estancia: { tipo: 'garaje', m2: 6, calidad: 'media', extras: [] } })).ok, false);
+  assert.equal(validarEntradaFoto(entrada({ idioma: 'fr' })).ok, false);
+  for (const x of [null, 'hola', {}]) assert.equal(validarEntradaFoto(x).ok, false);
+});
+
+test('entrada de foto: acepta un data URL y se queda solo con el base64', () => {
+  const r = validarEntradaFoto(entrada({ imagen: { mime: 'image/jpeg', base64: 'data:image/jpeg;base64,/9j/4AAQ' } }));
+  assert.equal(r.ok, true);
+  assert.equal(r.imagen.base64, '/9j/4AAQ');
 });

@@ -206,3 +206,48 @@ test('nodo montar: si la IA falló → plantilla, y el aviso llega a Jordi', asy
   assert.equal(out.respuesta.presupuesto.textos.saludo, 'Hola Marta:');
   assert.ok(out.resumenJordi.html.includes('plantilla'));
 });
+
+// ---- Flujo «Analizar foto» ----
+const ENTRADA_FOTO = { idioma: 'es', estancia: { tipo: 'bano', m2: 6, calidad: 'media', extras: [] }, imagen: { mime: 'image/jpeg', base64: '/9j/4AAQSkZJRgABAQ' } };
+const ANALISIS = { esEstancia: true, estanciaDetectada: 'bano', estado: 'a_reformar', elementos: ['bañera'], calidadAparente: 'basica',
+  extrasSugeridos: [{ extra: 'demolicion', motivo: 'Azulejo antiguo' }, { extra: 'fontaneria', motivo: 'Tuberías viejas' }], confianza: 0.8, notaTecnica: 'Humedad en el techo' };
+
+test('nodo foto-validar-entrada: prepara la imagen como binario y el prompt', async () => {
+  const codigo = buildCodigoNodo('foto-validar-entrada');
+  const ctx = vm.createContext({ $input: { first: () => ({ json: { body: ENTRADA_FOTO } }) }, console });
+  const [salida] = await vm.runInContext(`(async () => {\n${codigo}\n})()`, ctx);
+  const json = JSON.parse(JSON.stringify(salida.json));
+  assert.equal(json.ok, true);
+  assert.ok(json.prompt.includes('esEstancia'));
+  assert.equal(salida.binary.data.mimeType, 'image/jpeg');
+  assert.equal(salida.binary.data.data, '/9j/4AAQSkZJRgABAQ');
+});
+
+test('nodo foto-validar-entrada: entrada mala → ok:false sin binario', async () => {
+  const out = await ejecutarNodo('foto-validar-entrada', { input: { body: { ...ENTRADA_FOTO, imagen: { mime: 'application/pdf', base64: 'x' } } } });
+  assert.equal(out.ok, false);
+});
+
+test('nodo foto-resultado: texto de Gemini → análisis validado y precio del motor', async () => {
+  for (const gemini of [
+    { content: { parts: [{ text: '```json\n' + JSON.stringify(ANALISIS) + '\n```' }] } },
+    { text: JSON.stringify(ANALISIS) },
+    [{ text: JSON.stringify(ANALISIS) }],
+  ]) {
+    const out = await ejecutarNodo('foto-resultado', {
+      input: { valueRanges: valueRangesDesde(TARIFAS_RESPALDO) },
+      nodos: { 'Validar foto': { ok: true, ...ENTRADA_FOTO }, 'Analizar con Gemini': gemini },
+    });
+    assert.equal(out.ok, true, JSON.stringify(gemini).slice(0, 60));
+    assert.equal(out.analisis.estado, 'a_reformar');
+    assert.equal(out.estimacion.total, 8094.9);
+  }
+});
+
+test('nodo foto-resultado: Gemini falló → FOTO_NO_DISPONIBLE', async () => {
+  const out = await ejecutarNodo('foto-resultado', {
+    input: { error: { message: 'x' } },
+    nodos: { 'Validar foto': { ok: true, ...ENTRADA_FOTO }, 'Analizar con Gemini': { error: { message: 'quota' } } },
+  });
+  assert.deepEqual(out, { ok: false, error: { codigo: 'FOTO_NO_DISPONIBLE' } });
+});

@@ -103,7 +103,8 @@ export function leerFormulario() {
       telefono: $('#telefono').value,
       direccion: $('#direccion').value,
     },
-    estancias: estado.estancias.map((e) => ({ ...e, extras: [...e.extras] })),
+    // Solo lo que necesita n8n (la foto no se envía con la solicitud: solo su nota técnica).
+    estancias: estado.estancias.map((e) => ({ tipo: e.tipo, m2: e.m2, calidad: e.calidad, extras: [...e.extras], notaFoto: e.notaFoto ?? null })),
     extrasGenerales: $('#licencia').checked ? ['licencia'] : [],
     descripcion: $('#descripcion').value,
     privacidad: $('#privacidad').checked,

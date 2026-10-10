@@ -3,6 +3,7 @@ import { UI, idiomaInicial, guardarIdioma, aplicarIdioma } from './i18n.js';
 import { estado, iniciarFormulario, pintarEstancias, leerFormulario, rellenarFormulario, vaciarFormulario, mostrarErrores, validar, nuevaSolicitud } from './form.js';
 import { enviarPresupuesto } from './api.js';
 import { mostrarResultado, ocultarResultado, descargarPDF } from './resultado.js';
+import { iniciarFotos } from './foto.js';
 
 const $ = (sel) => document.querySelector(sel);
 let ultimo = null;          // último presupuesto recibido
@@ -83,6 +84,7 @@ async function enviar(ev) {
 function iniciar() {
   estado.idioma = idiomaInicial();
   aplicarIdioma(estado.idioma);
+  iniciarFotos();
   iniciarFormulario();
 
   document.querySelectorAll('[data-idioma]').forEach((b) => b.addEventListener('click', () => cambiarIdioma(b.dataset.idioma)));

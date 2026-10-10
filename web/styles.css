@@ -182,3 +182,22 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, .stepper:focu
   .cabecera, .hero, .formulario, .progreso, .pie, .acciones, .resultado__titulo, .resultado__email, .saltar { display: none !important; }
   .documento { box-shadow: none; }
 }
+
+/* Foto de la estancia (módulo de visión) */
+.foto-zona { margin-top: 4px; padding-top: 14px; border-top: 1px dashed var(--linea); }
+.foto__boton { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.foto__boton:focus-within { box-shadow: var(--foco); }
+.foto__fila { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.foto__miniatura { width: 96px; height: 96px; object-fit: cover; border-radius: 10px; border: 1px solid var(--linea); flex: none; }
+.foto__cuerpo { flex: 1; min-width: 0; font-size: 14.5px; }
+.foto__cuerpo p { margin: 0 0 8px; }
+.foto__estado { font-weight: 700; color: var(--terracota-osc); }
+.foto__aviso { background: #FFF6E5; border: 1px solid #F0D49A; border-radius: 8px; padding: 8px 10px; color: #6B4A00; }
+.foto__titulo { font-weight: 700; }
+.foto__sugerencias { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
+.foto__sugerencias li { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--blanco); border: 1px solid var(--linea); border-radius: 8px; padding: 8px 10px; }
+.foto__sugerencias small { display: block; color: var(--gris); font-size: 13px; }
+.foto__sugerencias button:disabled { color: #2E7D32; opacity: 1; cursor: default; text-decoration: none; }
+.foto__estimacion { background: var(--terracota-claro); border-radius: 8px; padding: 10px 12px; font-weight: 700; }
+.foto__estimacion small { display: block; font-weight: 500; color: var(--gris); font-size: 12.5px; margin-top: 2px; }
+@media (max-width: 480px) { .foto__fila { flex-direction: column; } .foto__miniatura { width: 100%; height: 160px; } }
