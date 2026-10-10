@@ -103,7 +103,7 @@ export function htmlDocumento(p) {
       `<td class="n pu">${eur(pt.precioUnitario)}</td><td class="n">${eur(pt.importe)}</td></tr>`).join('');
   }).join('');
 
-  const datos = [[D.cliente, p.cliente.nombre], [D.email, p.cliente.email],
+  const datos = [[D.cliente, p.cliente.nombreCompleto || p.cliente.nombre], [D.email, p.cliente.email],
     [D.telefono, p.cliente.telefono], [D.direccion, p.cliente.direccion]]
     .filter(([, v]) => v).map(([k, v]) => `<tr><td>${h(k)}</td><td>${h(v)}</td></tr>`).join('');
 
@@ -210,7 +210,8 @@ ${h(EMPRESA.razonSocial)} · ${h(EMPRESA.direccion)} · ${h(EMPRESA.telefono)}</
 export function resumenJordi({ presupuesto: p, avisos = {}, descripcion = '' }) {
   const E = ETIQUETAS.es;
   const estancias = tiposEstancia(p).map((t) => E.estancia[t]).join(' + ');
-  const asunto = `Nueva solicitud · ${estancias} · ${eur(p.total)} · ${p.cliente.nombre}`;
+  const nombre = p.cliente.nombreCompleto || p.cliente.nombre;
+  const asunto = `Nueva solicitud · ${estancias} · ${eur(p.total)} · ${nombre}`;
 
   const lista = [];
   if (avisos.origenTarifas === 'respaldo') lista.push('Se usaron las tarifas de respaldo porque la hoja de Google no se pudo leer: revisa que los precios estén al día.');
@@ -224,7 +225,7 @@ export function resumenJordi({ presupuesto: p, avisos = {}, descripcion = '' }) 
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;color:${C.antracita};font-size:14px;line-height:1.5">
 <h2 style="color:${C.terracota};margin:0 0 12px">Nueva solicitud ${h(p.numero)}</h2>
 ${lista.length ? `<div style="background:#FCEBEB;border:1px solid #E24B4A;padding:10px 14px;margin-bottom:14px"><strong style="color:#A32D2D">Avisos</strong><ul style="margin:6px 0 0;padding-left:18px">${lista.map((a) => `<li style="color:#A32D2D">${h(a)}</li>`).join('')}</ul></div>` : ''}
-<table>${fila('Cliente', p.cliente.nombre)}${fila('Email', p.cliente.email)}${fila('Teléfono', p.cliente.telefono || '—')}${fila('Dirección', p.cliente.direccion || '—')}${fila('Idioma', p.idioma.toUpperCase())}${fila('Total', `${eur(p.total)} (IVA incl.)`)}${fila('Plazo', formatPlazo(p.plazo, 'es'))}${fila('Texto redactado por', avisos.modelo || '—')}</table>
+<table>${fila('Cliente', nombre)}${fila('Email', p.cliente.email)}${fila('Teléfono', p.cliente.telefono || '—')}${fila('Dirección', p.cliente.direccion || '—')}${fila('Idioma', p.idioma.toUpperCase())}${fila('Total', `${eur(p.total)} (IVA incl.)`)}${fila('Plazo', formatPlazo(p.plazo, 'es'))}${fila('Texto redactado por', avisos.modelo || '—')}</table>
 <p style="margin:14px 0 4px"><strong>Trabajos</strong></p><ul style="margin:0;padding-left:18px">${resumenPartidas}</ul>
 ${notas.length ? `<p style="margin:14px 0 4px"><strong>Notas técnicas de las fotos</strong></p><ul style="margin:0;padding-left:18px">${notas.map((n) => `<li>${h(n)}</li>`).join('')}</ul>` : ''}
 <p style="margin:14px 0 4px"><strong>Lo que escribió el cliente</strong></p><p style="margin:0;white-space:pre-wrap">${h(descripcion || '—')}</p>

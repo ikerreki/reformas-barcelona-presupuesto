@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, '..');
 // Orden de dependencias: cada módulo solo importa de los anteriores.
-const MODULOS = ['catalogo', 'tarifas', 'formato', 'etiquetas', 'pricing', 'hoja', 'numeracion', 'guardrail', 'plantilla', 'prompt', 'render', 'foto'];
+const MODULOS = ['catalogo', 'tarifas', 'formato', 'etiquetas', 'normalizar', 'pricing', 'hoja', 'numeracion', 'guardrail', 'plantilla', 'prompt', 'render', 'foto'];
 
 function envolverModulo(nombre) {
   const fuente = readFileSync(join(RAIZ, 'engine', `${nombre}.js`), 'utf8');

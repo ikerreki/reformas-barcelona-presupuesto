@@ -2,6 +2,7 @@
 // Funciones puras, sin dependencias: las usan los tests (Node), la web (navegador)
 // y los nodos Code de n8n (inyectadas por n8n/build.mjs). Una sola fuente de verdad.
 import { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS, LIMITES } from './catalogo.js';
+import { nombrePropio, normalizarEmail, normalizarTelefono, normalizarCalle, normalizarCP, componerDireccion } from './normalizar.js';
 
 
 // Una sola dirección: sin comas, puntos y coma ni <>, que Gmail interpretaría como varios destinatarios.
@@ -48,14 +49,27 @@ export function validarSolicitud(raw) {
   if (!IDIOMAS.includes(idioma)) err('idioma', 'desconocido');
 
   const c = esObjeto(raw.cliente) ? raw.cliente : {};
+  // La dirección llega por campos (calle, piso, código postal, población) o, en el formato anterior, en una línea.
+  const d = esObjeto(c.direccion) ? c.direccion : null;
+  // Formato automático: mayúsculas en nombres y direcciones, email en minúsculas, teléfono agrupado (normalizar.js).
   const cliente = {
-    nombre: linea(c.nombre),
-    email: linea(c.email),
-    telefono: linea(c.telefono),
-    direccion: linea(c.direccion),
+    nombre: nombrePropio(linea(c.nombre)),
+    apellidos: nombrePropio(linea(c.apellidos)),
+    email: normalizarEmail(linea(c.email)),
+    telefono: normalizarTelefono(linea(c.telefono)),
+    direccion: d
+      ? componerDireccion({ calle: linea(d.calle), piso: linea(d.piso), cp: linea(d.cp), poblacion: linea(d.poblacion) })
+      : normalizarCalle(linea(c.direccion)),
   };
+  cliente.nombreCompleto = `${cliente.nombre} ${cliente.apellidos}`.trim();
   if (!cliente.nombre) err('cliente.nombre', 'requerido');
   else if (cliente.nombre.length < LIMITES.nombreMin || cliente.nombre.length > LIMITES.nombreMax) err('cliente.nombre', 'longitud');
+  if (!cliente.apellidos) err('cliente.apellidos', 'requerido');
+  else if (cliente.apellidos.length > LIMITES.nombreMax) err('cliente.apellidos', 'longitud');
+  if (d) {
+    if (!normalizarCP(linea(d.cp)).ok) err('cliente.direccion.cp', 'formato');
+    if (!linea(d.calle) && (linea(d.piso) || linea(d.cp))) err('cliente.direccion.calle', 'requerido');
+  }
   if (!cliente.email) err('cliente.email', 'requerido');
   else if (!EMAIL_RE.test(cliente.email)) err('cliente.email', 'formato');
   if (cliente.telefono.length > LIMITES.telefonoMax) err('cliente.telefono', 'longitud');

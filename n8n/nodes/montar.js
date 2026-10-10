@@ -23,7 +23,7 @@ const estanciasTexto = solicitud.estancias.map((e) => {
 }).concat(solicitud.extrasGenerales.map((x) => E.extra[x])).join(' + ');
 
 const filaSolicitud = [
-  numero, solicitud.solicitudId, c.fechaISO, solicitud.cliente.nombre, solicitud.cliente.email,
+  numero, solicitud.solicitudId, c.fechaISO, solicitud.cliente.nombreCompleto, solicitud.cliente.email,
   solicitud.cliente.telefono, solicitud.cliente.direccion, solicitud.idioma, estanciasTexto,
   presupuesto.subtotal, presupuesto.iva, presupuesto.total, formatPlazo(presupuesto.plazo, 'es'),
   c.origenTarifas, textoPlantilla ? 'sí' : 'no', notasFoto.join(' | '), modelo, 'nuevo',

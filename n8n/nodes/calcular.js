@@ -38,7 +38,7 @@ if (valueRanges) {
 // Fila que se reserva en «Solicitudes» ANTES de llamar a la IA: el append de Google es atómico,
 // así que la fila que nos toca da un número único (ver nodo «Asignar número»).
 const c = solicitud.cliente;
-const filaReserva = ['', solicitud.solicitudId, fechaISO, c.nombre, c.email, c.telefono, c.direccion, solicitud.idioma,
+const filaReserva = ['', solicitud.solicitudId, fechaISO, c.nombreCompleto, c.email, c.telefono, c.direccion, solicitud.idioma,
   '', '', '', '', '', '', '', '', '', 'pendiente'];
 
 return [{

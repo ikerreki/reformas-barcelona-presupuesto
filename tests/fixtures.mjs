@@ -6,7 +6,8 @@ export function solicitudMarta(cambios = {}) {
     solicitudId: 'test-0001',
     idioma: 'es',
     cliente: {
-      nombre: 'Marta Puig',
+      nombre: 'Marta',
+      apellidos: 'Puig',
       email: 'marta.puig@ejemplo.com',
       telefono: '',
       direccion: 'Carrer de Provença, 210, 3º 2ª, Barcelona',

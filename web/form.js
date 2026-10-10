@@ -5,6 +5,7 @@ import { TARIFAS_RESPALDO } from './engine/tarifas.js';
 import { ETIQUETAS } from './engine/etiquetas.js';
 import { escaparHTML as h } from './engine/render.js';
 import { validarSolicitud } from './engine/pricing.js';
+import { nombrePropio, normalizarEmail, normalizarTelefono, normalizarCalle, normalizarPiso, normalizarCP } from './engine/normalizar.js';
 import { UI, mensajeError } from './i18n.js';
 import { ICONOS } from './iconos.js';
 
@@ -101,9 +102,11 @@ export function leerFormulario() {
     idioma: estado.idioma,
     cliente: {
       nombre: $('#nombre').value,
+      apellidos: $('#apellidos').value,
       email: $('#email').value,
       telefono: $('#telefono').value,
-      direccion: $('#direccion').value,
+      // n8n la junta en una línea: «Calle Valencia, 31, 1.º 2.ª, 08015 Barcelona».
+      direccion: { calle: $('#calle').value, piso: $('#piso').value, cp: $('#cp').value, poblacion: $('#poblacion').value },
     },
     // Solo lo que necesita n8n (la foto no se envía con la solicitud: solo su nota técnica).
     estancias: estado.estancias.map((e) => ({ tipo: e.tipo, m2: e.m2, calidad: e.calidad, extras: [...e.extras], notaFoto: e.notaFoto ?? null })),
@@ -117,9 +120,15 @@ export function leerFormulario() {
 export function rellenarFormulario(raw) {
   estado.estancias = raw.estancias.map((e) => ({ tipo: e.tipo, m2: e.m2, calidad: e.calidad, extras: [...e.extras], notaFoto: e.notaFoto ?? null }));
   $('#nombre').value = raw.cliente.nombre;
+  $('#apellidos').value = raw.cliente.apellidos || '';
   $('#email').value = raw.cliente.email;
   $('#telefono').value = raw.cliente.telefono;
-  $('#direccion').value = raw.cliente.direccion;
+  const d = typeof raw.cliente.direccion === 'object' && raw.cliente.direccion ? raw.cliente.direccion : { calle: raw.cliente.direccion || '' };
+  $('#calle').value = d.calle || '';
+  $('#piso').value = d.piso || '';
+  $('#cp').value = d.cp || '';
+  $('#poblacion').value = d.poblacion || 'Barcelona';
+  $('#direccion-obra').open = Boolean(d.calle || d.piso || d.cp);
   $('#descripcion').value = raw.descripcion;
   $('#licencia').checked = raw.extrasGenerales.includes('licencia');
   $('#privacidad').checked = raw.privacidad;
@@ -130,7 +139,9 @@ export function rellenarFormulario(raw) {
 export function vaciarFormulario() {
   estado.estancias = [estanciaVacia()];
   estado.tocados.clear();
-  for (const id of ['nombre', 'email', 'telefono', 'direccion', 'descripcion']) $('#' + id).value = '';
+  for (const id of ['nombre', 'apellidos', 'email', 'telefono', 'calle', 'piso', 'cp', 'descripcion']) $('#' + id).value = '';
+  $('#poblacion').value = 'Barcelona';
+  $('#direccion-obra').open = false;
   $('#licencia').checked = false;
   $('#privacidad').checked = false;
   actualizarContador();
@@ -157,6 +168,9 @@ export function mostrarErrores(errores, { soloTocados = false } = {}) {
     const c = document.querySelector(`[data-campo="${CSS.escape(e.campo)}"]`) || (e.campo === 'estancias' ? $('#estancias') : null);
     if (!c) continue;
     c.classList.add('campo--error');
+    // Un error dentro de la dirección (plegada) la abre para que se vea.
+    const plegable = c.closest('details');
+    if (plegable) plegable.open = true;
     const p = $('.error', c);
     if (p) p.textContent = mensajeError(e.campo, e.codigo, estado.idioma);
     c.querySelectorAll('input, textarea').forEach((el) => el.setAttribute('aria-invalid', 'true'));
@@ -172,6 +186,16 @@ export function validar() {
 }
 
 // ---------- Eventos ----------
+
+// Las mismas reglas de formato que aplica n8n al validar (engine/normalizar.js).
+const FORMATOS = {
+  nombre: nombrePropio,
+  email: normalizarEmail,
+  telefono: normalizarTelefono,
+  calle: normalizarCalle,
+  piso: normalizarPiso,
+  cp: (v) => normalizarCP(v).cp,
+};
 
 function campoDe(el) {
   const c = el.closest('[data-campo]');
@@ -221,6 +245,9 @@ export function iniciarFormulario() {
 
   // Al salir de un campo se valida solo lo que el cliente ya ha tocado (sin regañar antes de tiempo).
   document.querySelector('#formulario').addEventListener('focusout', (ev) => {
+    // Formato automático al salir del campo: el cliente ve ya cómo quedará en el presupuesto.
+    const formatear = FORMATOS[ev.target.dataset.formato];
+    if (formatear && ev.target.value.trim()) ev.target.value = formatear(ev.target.value);
     const campo = campoDe(ev.target);
     if (!campo) return;
     estado.tocados.add(campo);

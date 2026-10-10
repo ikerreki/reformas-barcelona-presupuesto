@@ -3,7 +3,6 @@
 import { ETIQUETAS, listaEstancias } from './etiquetas.js';
 import { formatM2 } from './formato.js';
 
-const nombrePila = (nombre) => nombre.trim().split(/\s+/)[0];
 
 // En catalán el posesivo concuerda con el género de cada estancia: "el teu bany", "la teva cuina".
 const POSESIVO_CA = { bano: 'el teu bany', cocina: 'la teva cuina', salon: 'el teu saló/menjador', dormitorio: 'el teu dormitori', vivienda: 'el teu habitatge' };
@@ -66,7 +65,8 @@ export function textosPlantilla({ solicitud, tarifas }) {
   trabajos.push(t.visita, t.limpieza);
 
   return {
-    saludo: t.saludo(nombrePila(solicitud.cliente.nombre)),
+    // El nombre ya llega separado de los apellidos: «Hola María José:».
+    saludo: t.saludo(solicitud.cliente.nombre),
     resumen: t.resumen(idioma === 'ca'
       ? listaCatalana(solicitud.estancias.map((e) => e.tipo))
       : listaEstancias(solicitud.estancias.map((e) => e.tipo), idioma)),

@@ -11,7 +11,8 @@ test('la solicitud de Marta es válida', () => {
   assert.equal(r.ok, true);
   assert.equal(r.esBot, false);
   assert.deepEqual(r.errores, []);
-  assert.equal(r.solicitud.cliente.nombre, 'Marta Puig');
+  assert.equal(r.solicitud.cliente.nombre, 'Marta');
+  assert.equal(r.solicitud.cliente.nombreCompleto, 'Marta Puig');
   assert.equal(r.solicitud.estancias[0].m2, 6);
 });
 
@@ -120,13 +121,13 @@ test('solicitudId obligatorio', () => {
 
 test('normaliza: recorta textos y rellena opcionales', () => {
   const s = solicitudMarta();
-  s.cliente.nombre = '  Marta Puig  ';
+  s.cliente.nombre = '  Marta  ';
   delete s.cliente.telefono;
   delete s.extrasGenerales;
   delete s.estancias[0].notaFoto;
   const r = validarSolicitud(s);
   assert.equal(r.ok, true);
-  assert.equal(r.solicitud.cliente.nombre, 'Marta Puig');
+  assert.equal(r.solicitud.cliente.nombre, 'Marta');
   assert.equal(r.solicitud.cliente.telefono, '');
   assert.deepEqual(r.solicitud.extrasGenerales, []);
   assert.equal(r.solicitud.estancias[0].notaFoto, null);
@@ -138,4 +139,42 @@ test('entrada basura (null, string) no rompe: devuelve errores', () => {
     assert.equal(r.ok, false);
     assert.ok(r.errores.length > 0);
   }
+});
+
+// ---- Apellidos obligatorios y formato automático (pedido tras las pruebas reales) ----
+test('apellidos obligatorios y con longitud acotada', () => {
+  const s = solicitudMarta();
+  delete s.cliente.apellidos;
+  assert.ok(tieneError(validarSolicitud(s), 'cliente.apellidos', 'requerido'));
+  const t = solicitudMarta();
+  t.cliente.apellidos = 'x'.repeat(101);
+  assert.ok(tieneError(validarSolicitud(t), 'cliente.apellidos', 'longitud'));
+});
+
+test('formato automático: mayúsculas, email en minúsculas, teléfono agrupado y dirección en una línea', () => {
+  const s = solicitudMarta();
+  s.cliente = { nombre: 'reki', apellidos: 'SILVA', email: 'IkerRodriguezSilva@Gmail.com', telefono: '645403020',
+    direccion: { calle: 'calle valencia 31', piso: '1ro 2da', cp: '08015', poblacion: 'barcelona' } };
+  assert.deepEqual(validarSolicitud(s).solicitud.cliente, {
+    nombre: 'Reki', apellidos: 'Silva', nombreCompleto: 'Reki Silva', email: 'ikerrodriguezsilva@gmail.com',
+    telefono: '645 403 020', direccion: 'Calle Valencia, 31, 1.º 2.ª, 08015 Barcelona',
+  });
+});
+
+test('dirección por campos: el error sale en el campo concreto', () => {
+  const a = solicitudMarta();
+  a.cliente.direccion = { calle: 'Carrer de Verdi, 48', piso: '', cp: '8012', poblacion: 'Barcelona' };
+  assert.ok(tieneError(validarSolicitud(a), 'cliente.direccion.cp', 'formato'));
+  const b = solicitudMarta();
+  b.cliente.direccion = { calle: '', piso: '3.º 1.ª', cp: '', poblacion: 'Barcelona' };
+  assert.ok(tieneError(validarSolicitud(b), 'cliente.direccion.calle', 'requerido'));
+  const c = solicitudMarta();
+  c.cliente.direccion = { calle: '', piso: '', cp: '', poblacion: 'Barcelona' };
+  assert.equal(validarSolicitud(c).solicitud.cliente.direccion, '', 'solo la población (rellena de serie) = sin dirección');
+});
+
+test('la dirección en una sola línea (formato anterior) sigue funcionando y se formatea', () => {
+  const s = solicitudMarta();
+  s.cliente.direccion = 'carrer del bruc 2';
+  assert.equal(validarSolicitud(s).solicitud.cliente.direccion, 'Carrer del Bruc, 2');
 });

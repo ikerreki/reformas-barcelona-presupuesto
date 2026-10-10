@@ -73,27 +73,55 @@
         <section class="paso" aria-labelledby="titulo-paso3">
           <h2 id="titulo-paso3" class="paso__titulo"><span class="paso__num" aria-hidden="true">3</span><span data-i18n="paso3"></span></h2>
           <div class="rejilla">
+            <!-- data-formato: al salir del campo se aplica el mismo formato que en n8n (engine/normalizar.js). -->
             <div class="campo" data-campo="cliente.nombre">
               <label for="nombre"><span data-i18n="nombre"></span> <span class="req" aria-hidden="true">*</span></label>
-              <input id="nombre" autocomplete="name" required maxlength="100">
+              <input id="nombre" autocomplete="given-name" required maxlength="100" data-formato="nombre">
+              <p class="error" role="alert"></p>
+            </div>
+            <div class="campo" data-campo="cliente.apellidos">
+              <label for="apellidos"><span data-i18n="apellidos"></span> <span class="req" aria-hidden="true">*</span></label>
+              <input id="apellidos" autocomplete="family-name" required maxlength="100" data-formato="nombre">
               <p class="error" role="alert"></p>
             </div>
             <div class="campo" data-campo="cliente.email">
               <label for="email"><span data-i18n="email"></span> <span class="req" aria-hidden="true">*</span></label>
-              <input id="email" type="email" autocomplete="email" inputmode="email" required>
+              <input id="email" type="email" autocomplete="email" inputmode="email" required data-formato="email">
               <p class="error" role="alert"></p>
             </div>
             <div class="campo" data-campo="cliente.telefono">
               <label for="telefono"><span data-i18n="telefono"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
-              <input id="telefono" type="tel" autocomplete="tel" maxlength="30">
-              <p class="error" role="alert"></p>
-            </div>
-            <div class="campo" data-campo="cliente.direccion">
-              <label for="direccion"><span data-i18n="direccion"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
-              <input id="direccion" autocomplete="street-address" maxlength="200">
+              <input id="telefono" type="tel" autocomplete="tel" maxlength="30" data-formato="telefono">
               <p class="error" role="alert"></p>
             </div>
           </div>
+          <!-- Dirección de la obra: opcional y plegada; se abre sola si hay un error dentro. -->
+          <details class="direccion campo" id="direccion-obra" data-campo="cliente.direccion">
+            <summary><span class="si-plegada" data-i18n="direccionAnadir"></span><span class="si-abierta" data-i18n="direccion"></span> <small>(<span data-i18n="opcional"></span>)</small></summary>
+            <p class="error" role="alert"></p>
+            <div class="rejilla">
+              <div class="campo campo--ancho" data-campo="cliente.direccion.calle">
+                <label for="calle" data-i18n="calle"></label>
+                <input id="calle" autocomplete="address-line1" maxlength="120" data-formato="calle">
+                <p class="error" role="alert"></p>
+              </div>
+              <div class="campo" data-campo="cliente.direccion.piso">
+                <label for="piso"><span data-i18n="piso"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
+                <input id="piso" autocomplete="address-line2" maxlength="40" data-formato="piso">
+                <p class="error" role="alert"></p>
+              </div>
+              <div class="campo" data-campo="cliente.direccion.cp">
+                <label for="cp" data-i18n="cp"></label>
+                <input id="cp" autocomplete="postal-code" inputmode="numeric" maxlength="5" data-formato="cp">
+                <p class="error" role="alert"></p>
+              </div>
+              <div class="campo campo--ancho" data-campo="cliente.direccion.poblacion">
+                <label for="poblacion" data-i18n="poblacion"></label>
+                <input id="poblacion" autocomplete="address-level2" maxlength="60" value="Barcelona" data-formato="nombre">
+                <p class="error" role="alert"></p>
+              </div>
+            </div>
+          </details>
           <!-- Trampa anti-spam (honeypot): invisible para personas, los bots la rellenan. -->
           <div class="trampa" aria-hidden="true">
             <label for="website">Web</label>

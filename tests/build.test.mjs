@@ -66,7 +66,7 @@ test('hoyEnMadrid devuelve AAAA-MM-DD en hora de Madrid', () => {
 test('nodo validar: lee el body del Webhook', async () => {
   const out = await ejecutarNodo('validar', { input: { body: solicitudMarta(), headers: {} } });
   assert.equal(out.ok, true);
-  assert.equal(out.solicitud.cliente.nombre, 'Marta Puig');
+  assert.equal(out.solicitud.cliente.nombre, 'Marta');
 });
 
 test('nodo calcular: solicitud nueva con la hoja → total de Marta y hay que reservar fila', async () => {

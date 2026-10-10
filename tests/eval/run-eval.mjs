@@ -28,7 +28,7 @@ for (const [n, c] of casos.entries()) {
   const raw = {
     solicitudId: `eval-${marca}-${n}`,
     idioma: c.idioma,
-    cliente: { nombre: 'Prueba Evaluación', email: c.email || `ikerreki544+eval${n}@gmail.com`, telefono: '', direccion: '' },
+    cliente: { nombre: 'Prueba', apellidos: 'Evaluación', email: c.email || `ikerreki544+eval${n}@gmail.com`, telefono: '', direccion: '' },
     estancias: c.estancias,
     extrasGenerales: c.extrasGenerales,
     descripcion: c.descripcion,
