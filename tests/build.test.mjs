@@ -32,6 +32,15 @@ test('el código generado no contiene import/export (n8n no los admite)', () => 
   }
 });
 
+test('cada nodo incluye solo los módulos que usa (el MCP de n8n admite 300.000 caracteres por workflow)', () => {
+  const validar = buildCodigoNodo('validar');
+  assert.ok(validar.includes('const __pricing'));
+  assert.ok(!validar.includes('const __render'), 'validar no necesita render');
+  assert.ok(!buildCodigoNodo('comprobar-ia').includes('const __tarifas'), 'comprobar-ia no necesita tarifas');
+  const total = ['validar', 'calcular', 'comprobar-ia', 'comprobar-ia', 'montar'].reduce((s, n) => s + buildCodigoNodo(n).length, 0);
+  assert.ok(total < 200000, `los 5 nodos ocupan ${total} caracteres`);
+});
+
 test('hoyEnMadrid devuelve AAAA-MM-DD en hora de Madrid', () => {
   assert.equal(hoyEnMadrid(new Date('2026-12-31T23:30:00Z')), '2027-01-01');
   assert.match(hoyEnMadrid(), /^\d{4}-\d{2}-\d{2}$/);

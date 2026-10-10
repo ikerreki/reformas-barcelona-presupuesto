@@ -19,6 +19,7 @@ const MODULOS = ['catalogo', 'tarifas', 'formato', 'etiquetas', 'pricing', 'guar
 function envolverModulo(nombre) {
   const fuente = readFileSync(join(RAIZ, 'engine', `${nombre}.js`), 'utf8');
   const exportados = [];
+  const dependencias = [...fuente.matchAll(/^import\s*\{[^}]*\}\s*from\s*'\.\/([\w-]+)\.js'/gm)].map((m) => m[1]);
   const cuerpo = fuente
     .replace(/^import\s*\{([^}]*)\}\s*from\s*'\.\/([\w-]+)\.js';?\s*$/gm, (_, nombres, mod) => `const {${nombres}} = __${mod};`)
     .replace(/^export\s+(async\s+function|function|const|let)\s+([A-Za-z_$][\w$]*)/gm, (_, tipo, id) => {
@@ -26,7 +27,22 @@ function envolverModulo(nombre) {
       return `${tipo} ${id}`;
     });
   if (/^\s*(import|export)\s/m.test(cuerpo)) throw new Error(`engine/${nombre}.js tiene un import/export que el empaquetador no entiende`);
-  return { codigo: `const __${nombre} = (() => {\n${cuerpo}\nreturn { ${exportados.join(', ')} };\n})();`, exportados, nombre };
+  return { codigo: `const __${nombre} = (() => {\n${cuerpo}\nreturn { ${exportados.join(', ')} };\n})();`, exportados, dependencias, nombre };
+}
+
+// Solo los módulos cuyas funciones usa el nodo, más sus dependencias (para no pasar del
+// límite de tamaño de un workflow: cada nodo Code lleva su propia copia del motor).
+function modulosNecesarios(codigoNodo, todos) {
+  const porNombre = Object.fromEntries(todos.map((m) => [m.nombre, m]));
+  const usa = (m) => m.exportados.some((id) => new RegExp(`\\b${id}\\b`).test(codigoNodo));
+  const incluidos = new Set();
+  const añadir = (n) => {
+    if (incluidos.has(n) || !porNombre[n]) return;
+    incluidos.add(n);
+    porNombre[n].dependencias.forEach(añadir);
+  };
+  todos.filter(usa).forEach((m) => añadir(m.nombre));
+  return todos.filter((m) => incluidos.has(m.nombre)); // conserva el orden de dependencias
 }
 
 function configPublica() {
@@ -36,9 +52,10 @@ function configPublica() {
 
 /** Código completo (motor + cuerpo del nodo) para el nodo Code `nombre`. */
 export function buildCodigoNodo(nombre) {
-  const modulos = MODULOS.filter((m) => existsSync(join(RAIZ, 'engine', `${m}.js`))).map(envolverModulo);
-  const publicos = modulos.map((m) => `const { ${m.exportados.join(', ')} } = __${m.nombre};`).join('\n');
   const nodo = readFileSync(join(AQUI, 'nodes', `${nombre}.js`), 'utf8');
+  const todos = MODULOS.filter((m) => existsSync(join(RAIZ, 'engine', `${m}.js`))).map(envolverModulo);
+  const modulos = modulosNecesarios(nodo, todos);
+  const publicos = modulos.map((m) => `const { ${m.exportados.join(', ')} } = __${m.nombre};`).join('\n');
   return [
     `// ===== Motor de Reformas Barcelona (generado por n8n/build.mjs desde engine/; no editar aquí) =====`,
     ...modulos.map((m) => m.codigo),
