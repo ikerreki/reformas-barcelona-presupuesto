@@ -42,9 +42,15 @@ Se irá ampliando a medida que avance el proyecto.
 
 Analogía: una tienda que cobra con datáfono, pero tiene una caja de efectivo por si se va la conexión.
 
-### Limitación conocida (decirla suma puntos)
-- La numeración P-2026-000X sale de la hoja ("última + 1"). Si dos clientes envían en el mismo segundo, podrían recibir el mismo número.
-- Para una empresa de 25 personas es aceptable. En producción se resolvería con un contador atómico o una base de datos.
+### Numeración atómica (mejora tras la revisión independiente)
+- **Primera idea:** número = "último + 1". La revisión detectó que dos clientes simultáneos podían recibir el mismo número y que un reintento durante la llamada a la IA duplicaba filas y emails.
+- **Solución:** se **reserva una fila en la hoja ANTES de llamar a la IA**. El *append* de Google Sheets es atómico: dos peticiones simultáneas nunca reciben la misma fila, y **el número sale de la posición de la fila** (fila 5 → P-2026-0004).
+- **Idempotencia:** la web manda un `solicitudId` único que se mantiene en los reintentos. Si llega dos veces, se devuelve el mismo número y no se crea otra fila ni se envía otro email.
+- **Frase:** "Lo hice primero de la forma sencilla, una revisión independiente encontró la carrera de condiciones y lo rediseñé con una operación atómica."
+
+### Seguridad en la hoja: inyección de fórmulas
+- Si un cliente se llama `=IMPORTXML("http://…")` y la fila se escribe en modo `USER_ENTERED`, Google lo ejecutaría como **fórmula**.
+- Por eso se escribe en modo **`RAW`**: todo se guarda como texto literal.
 
 ---
 
@@ -122,6 +128,27 @@ Analogía: una tienda que cobra con datáfono, pero tiene una caja de efectivo p
 ### Detalles legales y de accesibilidad
 - **Casilla de privacidad (RGPD):** obligatoria en una web española real.
 - Etiquetas en todos los campos, uso completo con teclado y contraste del color terracota comprobado.
+
+### Hoja de Jordi a prueba de errores al teclear
+- La API de Sheets devuelve los números como texto ("1200"), o como número si se pide `UNFORMATTED_VALUE` (lo que hacemos).
+- `parseNumeroES` entiende "1.200", "1.200,50", "12,5" y "880 €", y **rechaza** formatos ingleses ambiguos como "1,200" (¿1,2 o 1200?): mejor no adivinar un precio.
+- **Banda de seguridad:** si un precio se aleja más de 5× del de referencia (por ejemplo, Jordi escribe 1,2 en vez de 1200), se descarta la hoja, se usan las tarifas de respaldo y se avisa a Jordi.
+- **IVA:** "0,21" (fracción en vez de porcentaje) se rechaza. Tendría un efecto enorme en silencio.
+
+### Cómo vive el código dentro de n8n (empaquetador)
+- El motor está en `engine/` con tests. `n8n/build.mjs` lo **empaqueta en cada nodo Code**: arriba la lógica del paso (lo que se enseña en la demo) y debajo el motor generado.
+- Cada nodo incluye **solo los módulos que usa**. Sin eso, el flujo superaba el límite de tamaño de n8n.
+- Cada módulo va en su propio ámbito para que sus nombres internos no choquen.
+- **Hay un test que verifica que el prompt que genera n8n es idéntico al del motor.** Así se detectó un fallo real: el empaquetador borraba los párrafos del prompt.
+
+### Pruebas de fallo reales (no simuladas)
+- **Claude roto** (modelo inexistente) → Gemini redactó en catalán y el guardarraíl lo aceptó.
+- **Claude, Gemini y la hoja rotos a la vez** → el cliente recibe igualmente su presupuesto con los números correctos (plantilla + tarifas de respaldo + número provisional) y Jordi recibe los avisos.
+- **Smoke test en producción: 7/7** (Marta 8.094,90 €, reintento con el mismo número, error 400 en el campo correcto, honeypot).
+
+### Créditos de IA gestionados por n8n
+- Claude funciona con los **créditos gratuitos de n8n** (credencial gestionada, sin clave propia).
+- Gemini usa una **clave propia gratuita** de AI Studio. Así, si se agotan los créditos, el sistema sigue funcionando.
 
 ---
 
