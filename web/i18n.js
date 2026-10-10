@@ -1,0 +1,229 @@
+// Textos de la interfaz en español, catalán e inglés.
+import { IDIOMAS } from './engine/catalogo.js';
+
+export const UI = {
+  es: {
+    titulo: 'Reformas Barcelona · Tu presupuesto al momento',
+    saltar: 'Ir al formulario',
+    marcaLema: 'Reformas integrales desde 1998',
+    'hero.eyebrow': 'Presupuesto online · gratis y sin compromiso',
+    'hero.titulo': 'Tu presupuesto de reforma, al momento',
+    'hero.texto': 'Cuéntanos qué quieres reformar y recibe un presupuesto detallado con nuestras tarifas en menos de un minuto. También te lo enviamos por email.',
+    'garantia.1': '25 profesionales y casi 30 años de oficio',
+    'garantia.2': 'Visita técnica gratuita',
+    'garantia.3': 'Precios cerrados con nuestras tarifas',
+    paso1: 'Tu reforma',
+    paso2: 'Cuéntanos qué quieres hacer',
+    paso3: 'Tus datos',
+    estancia: 'Estancia',
+    quitar: 'Quitar',
+    quitarAria: 'Quitar la estancia',
+    queReformar: '¿Qué quieres reformar?',
+    superficie: 'Superficie aproximada',
+    menos: 'Menos metros',
+    mas: 'Más metros',
+    calidad: 'Calidad de acabados',
+    extras: 'Extras (opcional)',
+    anadir: '+ Añadir otra estancia',
+    maxEstancias: 'Puedes pedir hasta 6 estancias en una misma solicitud.',
+    gestiones: 'Gestiones de la obra',
+    descripcionAyuda: 'Cuanto más nos cuentes, más personalizado será tu presupuesto.',
+    descripcionPlaceholder: 'Ej.: Quiero cambiar la bañera por un plato de ducha grande y poner un mueble con dos lavabos. El baño tiene unos 30 años.',
+    nombre: 'Nombre',
+    email: 'Email',
+    telefono: 'Teléfono',
+    direccion: 'Dirección de la obra',
+    opcional: 'opcional',
+    privacidad: 'Acepto que Reformas Barcelona use mis datos para preparar y enviarme este presupuesto.',
+    enviar: 'Recibir mi presupuesto',
+    notaEnvio: 'Tarda unos segundos. No hace falta registrarse.',
+    progreso: ['Revisando tu solicitud…', 'Calculando con nuestras tarifas…', 'Redactando tu presupuesto…', 'Últimos detalles…'],
+    'error.red': 'No hemos podido conectar con nuestro sistema. Revisa tu conexión y vuelve a intentarlo.',
+    'error.timeout': 'Está tardando más de lo normal. Vuelve a intentarlo en un momento: tus datos siguen aquí.',
+    'error.interno': 'Algo ha fallado al preparar tu presupuesto. Vuelve a intentarlo: tus datos siguen aquí.',
+    'error.llamanos': 'Si lo prefieres, llámanos al 930 000 000.',
+    'error.revisa': 'Revisa los campos marcados.',
+    reintentar: 'Reintentar',
+    pdf: 'Descargar PDF',
+    editar: 'Editar y recalcular',
+    nuevo: 'Nuevo presupuesto',
+    avisoEmail: 'También te lo hemos enviado a',
+    listo: 'Tu presupuesto está listo',
+    pie: 'Reformas Barcelona, S.L. es una empresa ficticia creada para el caso práctico de NU Automatiza.',
+    errores: {
+      tipo: 'Elige qué quieres reformar.',
+      calidad: 'Elige una calidad de acabados.',
+      m2: { formato: 'Escribe los m² con números (por ejemplo, 6 o 6,5).', rango: 'Indica entre 1 y 500 m².' },
+      'cliente.nombre': { requerido: 'Escribe tu nombre.', longitud: 'El nombre debe tener entre 2 y 100 caracteres.' },
+      'cliente.email': { requerido: 'Escribe tu email para enviarte el presupuesto.', formato: 'Revisa el email: parece incompleto.' },
+      'cliente.telefono': 'El teléfono es demasiado largo.',
+      'cliente.direccion': 'La dirección es demasiado larga.',
+      descripcion: 'El texto supera los 1.000 caracteres.',
+      privacidad: 'Necesitamos tu permiso para preparar el presupuesto.',
+      estancias: 'Añade al menos una estancia (máximo 6).',
+      generico: 'Revisa este campo.',
+    },
+  },
+  ca: {
+    titulo: 'Reformas Barcelona · El teu pressupost al moment',
+    saltar: 'Anar al formulari',
+    marcaLema: 'Reformes integrals des de 1998',
+    'hero.eyebrow': 'Pressupost en línia · gratuït i sense compromís',
+    'hero.titulo': 'El teu pressupost de reforma, al moment',
+    'hero.texto': "Explica'ns què vols reformar i rep un pressupost detallat amb les nostres tarifes en menys d'un minut. També te l'enviem per correu.",
+    'garantia.1': "25 professionals i gairebé 30 anys d'ofici",
+    'garantia.2': 'Visita tècnica gratuïta',
+    'garantia.3': 'Preus tancats amb les nostres tarifes',
+    paso1: 'La teva reforma',
+    paso2: "Explica'ns què vols fer",
+    paso3: 'Les teves dades',
+    estancia: 'Estança',
+    quitar: 'Treure',
+    quitarAria: "Treure l'estança",
+    queReformar: 'Què vols reformar?',
+    superficie: 'Superfície aproximada',
+    menos: 'Menys metres',
+    mas: 'Més metres',
+    calidad: "Qualitat d'acabats",
+    extras: 'Extres (opcional)',
+    anadir: '+ Afegir una altra estança',
+    maxEstancias: 'Pots demanar fins a 6 estances en una mateixa sol·licitud.',
+    gestiones: "Gestions de l'obra",
+    descripcionAyuda: "Com més ens expliquis, més personalitzat serà el teu pressupost.",
+    descripcionPlaceholder: 'Ex.: Vull canviar la banyera per un plat de dutxa gran i posar un moble amb dos lavabos. El bany té uns 30 anys.',
+    nombre: 'Nom',
+    email: 'Correu electrònic',
+    telefono: 'Telèfon',
+    direccion: "Adreça de l'obra",
+    opcional: 'opcional',
+    privacidad: "Accepto que Reformas Barcelona utilitzi les meves dades per preparar i enviar-me aquest pressupost.",
+    enviar: 'Rebre el meu pressupost',
+    notaEnvio: "Triga uns segons. No cal registrar-se.",
+    progreso: ['Revisant la teva sol·licitud…', 'Calculant amb les nostres tarifes…', 'Redactant el teu pressupost…', 'Últims detalls…'],
+    'error.red': "No hem pogut connectar amb el nostre sistema. Revisa la connexió i torna-ho a provar.",
+    'error.timeout': "Està trigant més del normal. Torna-ho a provar d'aquí a un moment: les teves dades continuen aquí.",
+    'error.interno': "Alguna cosa ha fallat en preparar el pressupost. Torna-ho a provar: les teves dades continuen aquí.",
+    'error.llamanos': "Si ho prefereixes, truca'ns al 930 000 000.",
+    'error.revisa': 'Revisa els camps marcats.',
+    reintentar: 'Tornar-ho a provar',
+    pdf: 'Descarregar PDF',
+    editar: 'Editar i recalcular',
+    nuevo: 'Nou pressupost',
+    avisoEmail: "També te l'hem enviat a",
+    listo: 'El teu pressupost està llest',
+    pie: "Reformas Barcelona, S.L. és una empresa fictícia creada per al cas pràctic de NU Automatiza.",
+    errores: {
+      tipo: 'Tria què vols reformar.',
+      calidad: "Tria una qualitat d'acabats.",
+      m2: { formato: 'Escriu els m² amb números (per exemple, 6 o 6,5).', rango: 'Indica entre 1 i 500 m².' },
+      'cliente.nombre': { requerido: 'Escriu el teu nom.', longitud: 'El nom ha de tenir entre 2 i 100 caràcters.' },
+      'cliente.email': { requerido: "Escriu el teu correu per enviar-te el pressupost.", formato: 'Revisa el correu: sembla incomplet.' },
+      'cliente.telefono': 'El telèfon és massa llarg.',
+      'cliente.direccion': "L'adreça és massa llarga.",
+      descripcion: 'El text supera els 1.000 caràcters.',
+      privacidad: 'Necessitem el teu permís per preparar el pressupost.',
+      estancias: 'Afegeix almenys una estança (màxim 6).',
+      generico: 'Revisa aquest camp.',
+    },
+  },
+  en: {
+    titulo: 'Reformas Barcelona · Your quote in a minute',
+    saltar: 'Go to the form',
+    marcaLema: 'Full renovations since 1998',
+    'hero.eyebrow': 'Online quote · free and no obligation',
+    'hero.titulo': 'Your renovation quote, right now',
+    'hero.texto': "Tell us what you want to renovate and get a detailed quote with our rates in less than a minute. We'll also email it to you.",
+    'garantia.1': '25 professionals and almost 30 years of experience',
+    'garantia.2': 'Free technical visit',
+    'garantia.3': 'Fixed prices based on our rates',
+    paso1: 'Your renovation',
+    paso2: 'Tell us what you want to do',
+    paso3: 'Your details',
+    estancia: 'Room',
+    quitar: 'Remove',
+    quitarAria: 'Remove the room',
+    queReformar: 'What do you want to renovate?',
+    superficie: 'Approximate area',
+    menos: 'Fewer square metres',
+    mas: 'More square metres',
+    calidad: 'Finish quality',
+    extras: 'Extras (optional)',
+    anadir: '+ Add another room',
+    maxEstancias: 'You can request up to 6 rooms in the same request.',
+    gestiones: 'Site management',
+    descripcionAyuda: 'The more you tell us, the more personalised your quote will be.',
+    descripcionPlaceholder: 'E.g.: I want to replace the bathtub with a large shower tray and fit a double-sink unit. The bathroom is about 30 years old.',
+    nombre: 'Name',
+    email: 'Email',
+    telefono: 'Phone',
+    direccion: 'Site address',
+    opcional: 'optional',
+    privacidad: 'I agree that Reformas Barcelona may use my details to prepare and send me this quote.',
+    enviar: 'Get my quote',
+    notaEnvio: 'It takes a few seconds. No sign-up needed.',
+    progreso: ['Checking your request…', 'Calculating with our rates…', 'Writing your quote…', 'Final touches…'],
+    'error.red': "We couldn't connect to our system. Check your connection and try again.",
+    'error.timeout': "It's taking longer than usual. Try again in a moment: your details are still here.",
+    'error.interno': 'Something went wrong while preparing your quote. Try again: your details are still here.',
+    'error.llamanos': 'If you prefer, call us on 930 000 000.',
+    'error.revisa': 'Please check the highlighted fields.',
+    reintentar: 'Try again',
+    pdf: 'Download PDF',
+    editar: 'Edit and recalculate',
+    nuevo: 'New quote',
+    avisoEmail: "We've also emailed it to",
+    listo: 'Your quote is ready',
+    pie: 'Reformas Barcelona, S.L. is a fictitious company created for the NU Automatiza case study.',
+    errores: {
+      tipo: 'Choose what you want to renovate.',
+      calidad: 'Choose a finish quality.',
+      m2: { formato: 'Type the m² as a number (for example, 6 or 6.5).', rango: 'Enter between 1 and 500 m².' },
+      'cliente.nombre': { requerido: 'Type your name.', longitud: 'The name must be 2 to 100 characters long.' },
+      'cliente.email': { requerido: 'Type your email so we can send you the quote.', formato: 'Check the email: it looks incomplete.' },
+      'cliente.telefono': 'The phone number is too long.',
+      'cliente.direccion': 'The address is too long.',
+      descripcion: 'The text is longer than 1,000 characters.',
+      privacidad: 'We need your permission to prepare the quote.',
+      estancias: 'Add at least one room (6 at most).',
+      generico: 'Please check this field.',
+    },
+  },
+};
+
+const CLAVE = 'rb-idioma';
+
+/** Idioma guardado, o el del navegador (ca* → catalán, en* → inglés), o español. */
+export function idiomaInicial() {
+  try {
+    const guardado = localStorage.getItem(CLAVE);
+    if (IDIOMAS.includes(guardado)) return guardado;
+  } catch { /* almacenamiento no disponible */ }
+  const nav = (navigator.language || 'es').toLowerCase();
+  if (nav.startsWith('ca')) return 'ca';
+  if (nav.startsWith('en')) return 'en';
+  return 'es';
+}
+
+export function guardarIdioma(idioma) {
+  try { localStorage.setItem(CLAVE, idioma); } catch { /* sin almacenamiento: no pasa nada */ }
+}
+
+/** Pinta los textos estáticos (data-i18n) en el idioma elegido. */
+export function aplicarIdioma(idioma) {
+  const t = UI[idioma];
+  document.documentElement.lang = idioma;
+  document.title = t.titulo;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t[el.dataset.i18n] ?? el.textContent; });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t[el.dataset.i18nPlaceholder] ?? ''; });
+  document.querySelectorAll('[data-idioma]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.idioma === idioma)));
+}
+
+/** Mensaje de error para un campo ("estancias[0].m2") y un código ("rango"). */
+export function mensajeError(campo, codigo, idioma) {
+  const E = UI[idioma].errores;
+  const clave = campo.replace(/^estancias\[\d+\]\./, '');
+  const m = E[clave] ?? E[campo];
+  if (typeof m === 'string') return m;
+  if (m && m[codigo]) return m[codigo];
+  return E.generico;
+}

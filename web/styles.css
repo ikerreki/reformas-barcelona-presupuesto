@@ -1,0 +1,184 @@
+/* Reformas Barcelona · estilos de la web (mobile-first). Colores y tipografía de la pestaña «Empresa». */
+:root {
+  --terracota: #C4552D;
+  --terracota-osc: #A8451F;
+  --terracota-claro: #F7E3DA;
+  --antracita: #2A2A2A;
+  --crema: #F6F1EA;
+  --blanco: #FFFFFF;
+  --gris: #66615B;
+  --linea: #E4DDD3;
+  --error: #B42318;
+  --error-fondo: #FDECEA;
+  --radio: 12px;
+  --sombra: 0 1px 2px rgba(42, 42, 42, .06), 0 8px 24px rgba(42, 42, 42, .06);
+  --foco: 0 0 0 3px rgba(196, 85, 45, .35);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--antracita);
+  background: var(--crema);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; }
+.contenedor { width: 100%; max-width: 880px; margin: 0 auto; padding: 0 16px; }
+[hidden] { display: none !important; }
+
+.saltar { position: absolute; left: -999px; top: 8px; background: var(--antracita); color: #fff; padding: 8px 14px; border-radius: 8px; z-index: 10; }
+.saltar:focus { left: 8px; }
+
+/* Cabecera */
+.cabecera { background: var(--blanco); border-bottom: 3px solid var(--terracota); position: sticky; top: 0; z-index: 5; }
+.cabecera__fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; }
+.cabecera__logo img { display: block; height: 34px; width: auto; }
+.idiomas { display: flex; gap: 4px; }
+.idiomas button {
+  font: inherit; font-size: 13px; font-weight: 700; letter-spacing: .04em;
+  border: 1px solid var(--linea); background: var(--blanco); color: var(--gris);
+  border-radius: 999px; padding: 6px 10px; cursor: pointer; min-width: 44px; min-height: 36px;
+}
+.idiomas button[aria-pressed="true"] { background: var(--antracita); border-color: var(--antracita); color: #fff; }
+
+/* Hero */
+.hero { padding: 32px 0 8px; }
+.hero__eyebrow { margin: 0 0 8px; color: var(--terracota-osc); font-weight: 700; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.hero h1 { margin: 0 0 12px; font-size: clamp(28px, 6vw, 40px); line-height: 1.15; font-weight: 800; letter-spacing: -.01em; }
+.hero__texto { margin: 0 0 18px; font-size: 17px; color: var(--gris); max-width: 640px; }
+.garantias { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.garantias li { display: flex; gap: 8px; align-items: baseline; font-weight: 600; font-size: 15px; }
+.garantias li > span:first-child { color: var(--terracota); font-weight: 800; }
+
+/* Formulario */
+.formulario { margin: 24px 0 48px; }
+.formulario--enviando { opacity: .55; pointer-events: none; }
+.paso { background: var(--blanco); border-radius: var(--radio); box-shadow: var(--sombra); padding: 20px 16px; margin-bottom: 16px; }
+.paso__titulo { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font-size: 20px; font-weight: 800; }
+.paso__num {
+  display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--terracota); color: #fff; font-size: 15px; flex: none;
+}
+.bloque { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+.bloque legend, .campo > label { font-weight: 700; margin-bottom: 8px; padding: 0; display: block; }
+.ayuda { color: var(--gris); font-size: 14px; margin: 0 0 8px; }
+.req { color: var(--terracota); }
+
+.estancia { border: 1px solid var(--linea); border-radius: var(--radio); padding: 16px; margin-bottom: 14px; background: #FFFCF8; }
+.estancia__cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.estancia__cabecera h3 { margin: 0; font-size: 17px; }
+
+/* Tipo de estancia: tarjetas con icono */
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tile { position: relative; cursor: pointer; }
+.tile input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.tile > span:not(.tile__icono):not(.tile__texto) { display: none; }
+.tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 1.5px solid var(--linea); border-radius: 10px; background: var(--blanco); text-align: center; font-weight: 600; font-size: 14px; transition: border-color .15s, background .15s; }
+.tile__icono { color: var(--gris); display: grid; }
+.tile:has(input:checked) { border-color: var(--terracota); background: var(--terracota-claro); }
+.tile:has(input:checked) .tile__icono { color: var(--terracota-osc); }
+.tile:has(input:focus-visible) { box-shadow: var(--foco); }
+
+/* m² */
+.stepper { display: inline-flex; align-items: stretch; border: 1.5px solid var(--linea); border-radius: 10px; overflow: hidden; background: var(--blanco); }
+.stepper__btn { font: inherit; font-size: 22px; width: 48px; border: 0; background: var(--crema); color: var(--antracita); cursor: pointer; }
+.stepper__btn:hover { background: var(--terracota-claro); }
+.stepper input { width: 90px; border: 0; text-align: center; font: inherit; font-size: 18px; font-weight: 700; padding: 10px 4px; }
+.stepper__unidad { display: grid; place-items: center; padding-right: 10px; color: var(--gris); font-weight: 600; }
+
+/* Calidad */
+.calidades { display: grid; gap: 8px; }
+.calidad { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1.5px solid var(--linea); border-radius: 10px; background: var(--blanco); cursor: pointer; }
+.calidad:has(input:checked) { border-color: var(--terracota); background: var(--terracota-claro); }
+.calidad input { margin-top: 4px; accent-color: var(--terracota); width: 18px; height: 18px; flex: none; }
+.calidad strong, .opcion strong { display: block; }
+.calidad small, .opcion small { display: block; color: var(--gris); font-size: 13.5px; line-height: 1.45; }
+
+/* Casillas (extras, licencia, privacidad) */
+.extras { display: grid; gap: 6px; }
+.opcion { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1.5px solid var(--linea); border-radius: 10px; background: var(--blanco); cursor: pointer; }
+.opcion:has(input:checked) { border-color: var(--terracota); background: var(--terracota-claro); }
+.opcion input { margin-top: 3px; accent-color: var(--terracota); width: 18px; height: 18px; flex: none; }
+.opcion--privacidad { border-style: dashed; font-size: 14.5px; }
+
+.anadir { margin: 4px 0 20px; }
+
+/* Campos de texto */
+.rejilla { display: grid; gap: 14px; margin-bottom: 14px; }
+.campo input:not([type="checkbox"]):not([type="radio"]), textarea {
+  width: 100%; font: inherit; color: var(--antracita); background: var(--blanco);
+  border: 1.5px solid var(--linea); border-radius: 10px; padding: 11px 12px;
+}
+.stepper input { border: 0 !important; width: 90px !important; }
+textarea { resize: vertical; min-height: 120px; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, .stepper:focus-within { outline: none; box-shadow: var(--foco); border-color: var(--terracota); }
+.contador { text-align: right; color: var(--gris); font-size: 13px; margin: 4px 0 0; }
+
+/* Errores */
+.error { color: var(--error); font-size: 14px; font-weight: 600; margin: 6px 0 0; min-height: 0; }
+.error:empty { display: none; }
+.campo--error input:not([type="checkbox"]):not([type="radio"]), .campo--error textarea, .campo--error .stepper { border-color: var(--error); }
+.campo--error .tile, .campo--error .calidad { border-color: #E9A9A2; }
+.banner-error { background: var(--error-fondo); border: 1px solid #F1B5AE; color: var(--error); border-radius: var(--radio); padding: 14px 16px; margin-bottom: 16px; }
+.banner-error p { margin: 0 0 8px; font-weight: 600; }
+.banner-error__llamanos { color: var(--antracita); font-weight: 500 !important; }
+
+/* Trampa anti-spam: fuera de la vista y del teclado */
+.trampa { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Botones */
+.btn { font: inherit; font-weight: 700; border-radius: 999px; padding: 12px 22px; cursor: pointer; border: 1.5px solid transparent; min-height: 48px; }
+.btn--primario { background: var(--terracota); color: #fff; box-shadow: 0 6px 16px rgba(196, 85, 45, .28); }
+.btn--primario:hover { background: var(--terracota-osc); }
+.btn--secundario { background: var(--blanco); color: var(--antracita); border-color: var(--antracita); }
+.btn--secundario:hover { background: var(--crema); }
+.btn--secundario:disabled { opacity: .45; cursor: not-allowed; }
+.btn--texto { background: none; color: var(--terracota-osc); padding: 8px 10px; min-height: 40px; }
+.btn--texto:hover { text-decoration: underline; }
+.enviar { display: grid; gap: 8px; justify-items: stretch; text-align: center; }
+.enviar .btn--primario { font-size: 18px; padding: 16px 28px; }
+
+/* Progreso */
+.progreso { text-align: center; padding: 28px 16px; margin: -24px 0 40px; background: var(--blanco); border-radius: var(--radio); box-shadow: var(--sombra); }
+.progreso__circulo { width: 44px; height: 44px; margin: 0 auto 12px; border-radius: 50%; border: 4px solid var(--terracota-claro); border-top-color: var(--terracota); animation: girar 1s linear infinite; }
+.progreso p { margin: 0; font-weight: 700; font-size: 17px; }
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .progreso__circulo { animation-duration: 3s; } html { scroll-behavior: auto; } }
+
+/* Resultado */
+.resultado { margin: 24px 0 48px; }
+.resultado__titulo { font-size: 26px; margin: 0 0 4px; outline: none; }
+.resultado__email { margin: 0 0 16px; color: var(--gris); overflow-wrap: anywhere; }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.documento { background: var(--blanco); border-radius: var(--radio); box-shadow: var(--sombra); overflow: hidden; }
+
+/* Pie */
+.pie { background: var(--antracita); color: #E8E2D9; padding: 28px 0; font-size: 14px; }
+.pie img { height: 30px; width: auto; display: block; margin-bottom: 10px; }
+.pie p { margin: 4px 0; }
+.pie__nota { color: #B9B1A6; font-size: 13px; }
+
+/* Escritorio */
+@media (min-width: 720px) {
+  .hero { padding: 48px 0 12px; }
+  .garantias { grid-template-columns: repeat(3, auto); gap: 18px; justify-content: start; }
+  .paso { padding: 28px; }
+  .tiles { grid-template-columns: repeat(5, 1fr); }
+  .calidades { grid-template-columns: repeat(3, 1fr); }
+  .calidad { flex-direction: column; }
+  .extras { grid-template-columns: repeat(2, 1fr); }
+  .rejilla { grid-template-columns: 1fr 1fr; }
+  .enviar { justify-items: center; }
+  .cabecera__logo img { height: 40px; }
+}
+
+/* Imprimir (respaldo si html2pdf no carga): solo el presupuesto */
+@media print {
+  body { background: #fff; }
+  .cabecera, .hero, .formulario, .progreso, .pie, .acciones, .resultado__titulo, .resultado__email, .saltar { display: none !important; }
+  .documento { box-shadow: none; }
+}

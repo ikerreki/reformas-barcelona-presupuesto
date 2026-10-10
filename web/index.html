@@ -1,2 +1,148 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><title>Reformas Barcelona</title></head><body></body></html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reformas Barcelona · Tu presupuesto al momento</title>
+  <meta name="description" content="Pide tu presupuesto de reforma a Reformas Barcelona y recíbelo al momento, con nuestras tarifas y por email.">
+  <meta name="theme-color" content="#C4552D">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="saltar" href="#formulario" data-i18n="saltar">Ir al formulario</a>
+
+  <header class="cabecera">
+    <div class="contenedor cabecera__fila">
+      <a href="./" class="cabecera__logo"><img src="assets/reformas-barcelona-logo.svg" alt="Reformas Barcelona" width="240" height="41"></a>
+      <nav class="idiomas" aria-label="Idioma · Idioma · Language">
+        <button type="button" data-idioma="es" aria-pressed="true" lang="es">ES</button>
+        <button type="button" data-idioma="ca" aria-pressed="false" lang="ca">CA</button>
+        <button type="button" data-idioma="en" aria-pressed="false" lang="en">EN</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="contenedor">
+        <p class="hero__eyebrow" data-i18n="hero.eyebrow"></p>
+        <h1 data-i18n="hero.titulo"></h1>
+        <p class="hero__texto" data-i18n="hero.texto"></p>
+        <ul class="garantias">
+          <li><span aria-hidden="true">✓</span> <span data-i18n="garantia.1"></span></li>
+          <li><span aria-hidden="true">✓</span> <span data-i18n="garantia.2"></span></li>
+          <li><span aria-hidden="true">✓</span> <span data-i18n="garantia.3"></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="contenedor">
+      <form id="formulario" class="formulario" novalidate>
+        <section class="paso" aria-labelledby="titulo-paso1">
+          <h2 id="titulo-paso1" class="paso__titulo"><span class="paso__num" aria-hidden="true">1</span><span data-i18n="paso1"></span></h2>
+          <div id="estancias"></div>
+          <div class="anadir">
+            <button type="button" id="anadir" class="btn btn--secundario" data-i18n="anadir"></button>
+            <p class="ayuda" id="ayuda-max" data-i18n="maxEstancias" hidden></p>
+          </div>
+          <fieldset class="bloque">
+            <legend data-i18n="gestiones"></legend>
+            <label class="opcion">
+              <input type="checkbox" id="licencia">
+              <span><strong id="licencia-titulo"></strong><small id="licencia-desc"></small></span>
+            </label>
+          </fieldset>
+        </section>
+
+        <section class="paso" aria-labelledby="titulo-paso2">
+          <h2 id="titulo-paso2" class="paso__titulo"><span class="paso__num" aria-hidden="true">2</span><span data-i18n="paso2"></span></h2>
+          <div class="campo" data-campo="descripcion">
+            <p class="ayuda" id="ayuda-descripcion" data-i18n="descripcionAyuda"></p>
+            <textarea id="descripcion" rows="5" maxlength="1000" aria-describedby="ayuda-descripcion contador" data-i18n-placeholder="descripcionPlaceholder" aria-labelledby="titulo-paso2"></textarea>
+            <p class="contador" id="contador" aria-live="polite">0/1000</p>
+            <p class="error" role="alert"></p>
+          </div>
+        </section>
+
+        <section class="paso" aria-labelledby="titulo-paso3">
+          <h2 id="titulo-paso3" class="paso__titulo"><span class="paso__num" aria-hidden="true">3</span><span data-i18n="paso3"></span></h2>
+          <div class="rejilla">
+            <div class="campo" data-campo="cliente.nombre">
+              <label for="nombre"><span data-i18n="nombre"></span> <span class="req" aria-hidden="true">*</span></label>
+              <input id="nombre" autocomplete="name" required maxlength="100">
+              <p class="error" role="alert"></p>
+            </div>
+            <div class="campo" data-campo="cliente.email">
+              <label for="email"><span data-i18n="email"></span> <span class="req" aria-hidden="true">*</span></label>
+              <input id="email" type="email" autocomplete="email" inputmode="email" required>
+              <p class="error" role="alert"></p>
+            </div>
+            <div class="campo" data-campo="cliente.telefono">
+              <label for="telefono"><span data-i18n="telefono"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
+              <input id="telefono" type="tel" autocomplete="tel" maxlength="30">
+              <p class="error" role="alert"></p>
+            </div>
+            <div class="campo" data-campo="cliente.direccion">
+              <label for="direccion"><span data-i18n="direccion"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
+              <input id="direccion" autocomplete="street-address" maxlength="200">
+              <p class="error" role="alert"></p>
+            </div>
+          </div>
+          <!-- Trampa anti-spam (honeypot): invisible para personas, los bots la rellenan. -->
+          <div class="trampa" aria-hidden="true">
+            <label for="website">Web</label>
+            <input id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="campo" data-campo="privacidad">
+            <label class="opcion opcion--privacidad">
+              <input type="checkbox" id="privacidad" required>
+              <span data-i18n="privacidad"></span>
+            </label>
+            <p class="error" role="alert"></p>
+          </div>
+        </section>
+
+        <div id="banner-error" class="banner-error" role="alert" hidden>
+          <p id="banner-texto"></p>
+          <p class="banner-error__llamanos" data-i18n="error.llamanos"></p>
+          <button type="button" id="reintentar" class="btn btn--secundario" data-i18n="reintentar"></button>
+        </div>
+
+        <div class="enviar">
+          <button type="submit" id="enviar" class="btn btn--primario" data-i18n="enviar"></button>
+          <p class="ayuda" data-i18n="notaEnvio"></p>
+        </div>
+      </form>
+
+      <section id="progreso" class="progreso" hidden>
+        <div class="progreso__circulo" aria-hidden="true"></div>
+        <p id="progreso-texto" aria-live="polite"></p>
+      </section>
+
+      <section id="resultado" class="resultado" hidden aria-labelledby="titulo-resultado">
+        <h2 id="titulo-resultado" class="resultado__titulo" data-i18n="listo" tabindex="-1"></h2>
+        <p class="resultado__email"><span data-i18n="avisoEmail"></span> <strong id="resultado-email"></strong></p>
+        <div class="acciones">
+          <button type="button" id="btn-pdf" class="btn btn--primario" data-i18n="pdf"></button>
+          <button type="button" id="btn-editar" class="btn btn--secundario" data-i18n="editar"></button>
+          <button type="button" id="btn-nuevo" class="btn btn--texto" data-i18n="nuevo"></button>
+        </div>
+        <div id="documento" class="documento"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">
+      <img src="assets/reformas-barcelona-logo-blanco.svg" alt="Reformas Barcelona" width="200" height="34">
+      <p>Carrer de la Reforma, 12, 08005 Barcelona · 930 000 000 · presupuestos@reformasbarcelona.example</p>
+      <p class="pie__nota" data-i18n="pie"></p>
+    </div>
+  </footer>
+</body>
+</html>
