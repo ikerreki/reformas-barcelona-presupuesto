@@ -1,0 +1,11 @@
+# Material del caso de NU Automatiza: no se publica
+caso-practico-nu-automatiza.pdf
+
+# Secretos y dependencias
+.env
+.env.*
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
