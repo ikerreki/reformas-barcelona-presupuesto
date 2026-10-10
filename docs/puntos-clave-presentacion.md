@@ -150,6 +150,31 @@ Analogía: una tienda que cobra con datáfono, pero tiene una caja de efectivo p
 - Claude funciona con los **créditos gratuitos de n8n** (credencial gestionada, sin clave propia).
 - Gemini usa una **clave propia gratuita** de AI Studio. Así, si se agotan los créditos, el sistema sigue funcionando.
 
+### Revisión independiente y arreglos (con tests que primero fallan)
+Un revisor independiente auditó la web y el flujo de n8n: **0 problemas críticos y 7 importantes**. Cada arreglo
+empezó con un test que reproducía el fallo (rojo) y terminó con la suite completa en verde (161/161).
+- **Solicitudes que se quedan a medias:** si un intento falla después de reservar la fila, el reintento la termina en
+  su sitio, con el mismo número, y envía los correos que no salieron. Antes, ese cliente se perdía sin que nadie se enterara.
+  Lo probé en producción simulando una fila «pendiente».
+- **Idempotencia bien entendida:** la web reutiliza el identificador de la solicitud solo si reenvía *exactamente* los mismos
+  datos (compara una "huella"). Si el cliente cambia algo, es otra solicitud y lleva otro identificador.
+- **Límite anti-abuso:** como mucho 10 presupuestos al día por email. Así nadie puede usar el formulario para mandar
+  decenas de correos con nuestra marca a una misma persona. El cliente ve un mensaje claro con el teléfono.
+- **Nadie se entera de un fallo = fallo grave:** si el cliente ve un error, Jordi recibe una alerta. Si el email al cliente
+  no sale, Jordi recibe un aviso para llamarle.
+
+### Anécdota de depuración: el PDF descargado desde el móvil
+1. **Síntoma:** desde el móvil, el PDF salía con el diseño de móvil, sin la columna «Precio unitario».
+2. **El arreglo obvio** (decirle al renderizador que la ventana mide 900 px) **creaba otro fallo**: el documento se
+   centraba y la columna «Importe» quedaba cortada. Lo vi porque comparé los renders lado a lado, no porque fallara un test.
+3. **Al ajustarlo apareció un tercer problema:** los totales salían descuadrados. Inspeccionando el documento que prepara
+   la librería (html2pdf), encontré la causa raíz: por un **redondeo de 0,0124 px**, su modo `avoid-all` metía `<div>`
+   vacíos *dentro* de la tabla, que el navegador convertía en celdas fantasma.
+4. **Solución de fondo:** el PDF nunca usa las reglas de móvil, los saltos de página se calculan sobre bloques completos
+   y cada título viaja con su tabla. Ese comportamiento queda fijado con tests.
+
+**Mensaje:** no me quedo con el primer arreglo que "parece funcionar". Busco la causa raíz y la verifico con evidencia.
+
 ---
 
 ## 4. Decisiones de seguridad y buenas prácticas
