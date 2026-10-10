@@ -78,7 +78,7 @@
 │  ├─ catalogo.js                  códigos válidos (estancias, calidades, extras)
 │  ├─ pricing.js                   validarSolicitud() + calcularPresupuesto()
 │  ├─ etiquetas.js                 código → texto ES/CA/EN (web, email y PDF)
-│  └─ tarifas.json                 tarifas del Excel (respaldo)
+│  └─ tarifas.js                   tarifas del Excel (respaldo; JS para importarlo en Node, navegador y n8n)
 ├─ n8n/
 │  ├─ build.mjs                    genera el código de los nodos Code inyectando engine/*
 │  ├─ generated/                   JS listo para pegar en los nodos Code (generado)
@@ -221,7 +221,7 @@ Funciones puras, sin dependencias, válidas a la vez en Node (tests), en el nave
 | 1 | Webhook | POST; `Allowed Origins` = dominio de Vercel (más `localhost` en desarrollo); `Respond: Using Respond to Webhook Node` | — |
 | 2 | Code · Validar | `validarSolicitud` + honeypot | Respuesta 400 con `campos`; si el honeypot llega relleno, 200 `{ ok: true, presupuesto: null }` y fin |
 | 3 | Google Sheets · Leer tarifas | Pestañas Tarifas, Extras, Plazos, Qué incluye, Condiciones, Config | Salida de error ⇒ respaldo |
-| 4 | Code · Calcular | `normalizarTarifas` (si falla, `tarifas.json`) + `calcularPresupuesto`; marca `origenTarifas` | — |
+| 4 | Code · Calcular | `normalizarTarifas` (si falla, `tarifas.js`) + `calcularPresupuesto`; marca `origenTarifas` | — |
 | 5 | IA · Redactar (Claude) | Prompt de §7.1, salida estructurada, temperatura ~0,4 | Gemini ⇒ plantilla |
 | 6 | Code · Guardarraíl | Esquema + sin importes + longitud (§7.1) | Plantilla; marca `textoPlantilla` |
 | 7 | Code · Montar | JSON de respuesta + HTML del email + HTML del PDF (con `etiquetas.js`) | — |
@@ -245,7 +245,7 @@ Si Gemini falla, la respuesta es `{ ok: false, error: { codigo: "FOTO_NO_DISPONI
 
 ### 6.4 Cómo llega el motor a n8n
 
-`n8n/build.mjs` concatena `catalogo.js`, `pricing.js`, `etiquetas.js` y `tarifas.json` con el código específico de cada nodo, y genera `n8n/generated/*.js`. Ese contenido es el `jsCode` de los nodos Code al crear o actualizar los workflows vía MCP. Tras cada cambio, el JSON de los workflows se exporta a `n8n/workflows/`.
+`n8n/build.mjs` concatena `catalogo.js`, `pricing.js`, `etiquetas.js` y `tarifas.js` con el código específico de cada nodo, y genera `n8n/generated/*.js`. Ese contenido es el `jsCode` de los nodos Code al crear o actualizar los workflows vía MCP. Tras cada cambio, el JSON de los workflows se exporta a `n8n/workflows/`.
 
 ---
 
@@ -342,7 +342,7 @@ Una hoja nueva, «Reformas Barcelona · Presupuestos», en el Drive de `ikerreki
 | Pestaña | Columnas |
 |---|---|
 | `Tarifas` | `estancia` (código) · `nombre` · `basica` · `media` · `alta` |
-| `Extras` | `codigo` · `nombre` · `tipo` (`m2` / `fijo`) · `precio` · `ambito` (`estancia` / `general`) · `descripcion` |
+| `Extras` | `codigo` · `nombre` · `tipo` (`m2` / `fijo`) · `precio` · `ambito` (`estancia` / `general`) · `descripcion_es` · `descripcion_ca` · `descripcion_en` |
 | `Plazos` | `estancia` · `min_semanas` · `max_semanas` |
 | `QueIncluye` | `calidad` · `es` · `ca` · `en` |
 | `Condiciones` | `orden` · `titulo_es` · `detalle_es` · `titulo_ca` · `detalle_ca` · `titulo_en` · `detalle_en` |
