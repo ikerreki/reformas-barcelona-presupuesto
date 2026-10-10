@@ -32,6 +32,7 @@ return [{
     respuesta: { ok: true, presupuesto },
     asunto: asuntoEmail(presupuesto),
     htmlEmail: htmlEmail(presupuesto),
+    htmlEmailSinAdjunto: htmlEmail(presupuesto, { conAdjunto: false }),
     htmlPDF: htmlPaginaPDF(presupuesto),
     nombrePDF: `Presupuesto-${c.numero}.pdf`,
     resumenJordi: resumenJordi({ presupuesto, avisos, descripcion: solicitud.descripcion }),

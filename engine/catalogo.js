@@ -17,6 +17,7 @@ export const LIMITES = {
   telefonoMax: 30,
   direccionMax: 200,
   descripcionMax: 1000,
+  notaFotoMax: 300,
 };
 
 export const EMPRESA = {

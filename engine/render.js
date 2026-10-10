@@ -153,7 +153,8 @@ const ADJUNTO = {
   en: 'The quote is also attached as a PDF.',
 };
 
-export function htmlEmail(p) {
+/** conAdjunto: false cuando PDF.co falló y el correo sale sin el PDF (no prometemos un adjunto que no va). */
+export function htmlEmail(p, { conAdjunto = true } = {}) {
   const E = ETIQUETAS[p.idioma];
   const D = E.doc;
   const F = "font-family:Manrope,Arial,Helvetica,sans-serif;color:" + C.antracita;
@@ -190,7 +191,7 @@ ${total(h(D.total), eur(p.total), `color:${C.terracota};font-weight:800;font-siz
 <strong>${h(D.validoHasta)}:</strong> ${h(formatFecha(p.validoHasta, p.idioma))}</p>
 <h2 style="${F};color:${C.terracota};font-size:17px;margin:22px 0 8px">${h(D.condiciones)}</h2>
 <ul style="margin:0;padding-left:20px;font-size:13.5px">${p.condiciones.map((c) => `<li style="margin:3px 0"><strong>${h(c.titulo)}:</strong> ${h(c.detalle)}</li>`).join('')}</ul>
-<p style="margin:20px 0 0">${h(p.textos.cierre)} ${h(ADJUNTO[p.idioma])}</p>
+<p style="margin:20px 0 0">${h(p.textos.cierre)}${conAdjunto ? ' ' + h(ADJUNTO[p.idioma]) : ''}</p>
 <p style="margin:20px 0 0">${h(D.despedida)}<br><strong>${h(EMPRESA.gerente)}</strong><br>${h(D.cargo)}</p>
 </td></tr>
 <tr><td style="padding:16px 28px;background:${C.antracita};color:#ffffff;font-family:Arial,sans-serif;font-size:12px;border-radius:0 0 10px 10px">

@@ -5,6 +5,13 @@ import { formatM2 } from './formato.js';
 
 const nombrePila = (nombre) => nombre.trim().split(/\s+/)[0];
 
+// En catalán el posesivo concuerda con el género de cada estancia: "el teu bany", "la teva cuina".
+const POSESIVO_CA = { bano: 'el teu bany', cocina: 'la teva cuina', salon: 'el teu saló/menjador', dormitorio: 'el teu dormitori', vivienda: 'el teu habitatge' };
+function listaCatalana(tipos) {
+  const n = tipos.map((t) => POSESIVO_CA[t]);
+  return n.length <= 1 ? n.join('') : `${n.slice(0, -1).join(', ')} i ${n[n.length - 1]}`;
+}
+
 const T = {
   es: {
     saludo: (n) => `Hola ${n}:`,
@@ -21,7 +28,7 @@ const T = {
   ca: {
     saludo: (n) => `Hola ${n}:`,
     resumen: (lista) =>
-      `Moltes gràcies per contactar amb Reformas Barcelona. T'enviem el pressupost per reformar el teu ${lista}. ` +
+      `Moltes gràcies per contactar amb Reformas Barcelona. T'enviem el pressupost per reformar ${lista}. ` +
       "L'hem preparat amb les nostres tarifes i els acabats que has triat. A la visita tècnica gratuïta revisarem " +
       'amb tu les mesures i qualsevol detall que vulguis ajustar.',
     estancia: (est, m2, cal, incluye) => `${est} d'uns ${m2} m², qualitat ${cal}: ${incluye}`,
@@ -60,7 +67,9 @@ export function textosPlantilla({ solicitud, tarifas }) {
 
   return {
     saludo: t.saludo(nombrePila(solicitud.cliente.nombre)),
-    resumen: t.resumen(listaEstancias(solicitud.estancias.map((e) => e.tipo), idioma)),
+    resumen: t.resumen(idioma === 'ca'
+      ? listaCatalana(solicitud.estancias.map((e) => e.tipo))
+      : listaEstancias(solicitud.estancias.map((e) => e.tipo), idioma)),
     trabajos,
     cierre: t.cierre,
   };

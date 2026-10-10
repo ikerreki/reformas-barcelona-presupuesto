@@ -2,17 +2,23 @@
 // Funciones puras, sin dependencias: las usan los tests (Node), la web (navegador)
 // y los nodos Code de n8n (inyectadas por n8n/build.mjs). Una sola fuente de verdad.
 import { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS, LIMITES } from './catalogo.js';
+import { TARIFAS_RESPALDO } from './tarifas.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
+// Campos de una sola línea: sin saltos ni caracteres de control (evita colar instrucciones o cabeceras).
+const linea = (v) => texto(v).replace(/[\s\p{Cc}]+/gu, ' ');
+// Texto libre: se conservan los saltos de línea, pero no otros caracteres de control.
+const textoLibre = (v) => texto(v).replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, '');
 const esObjeto = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
-// Convierte los m² que escribe un cliente ("6", "6,5", 6.5) a número; NaN si no se puede.
+// Convierte los m² que escribe un cliente ("6", "6,5", 6.5, "1.200") a número; NaN si no se puede.
 function leerM2(v) {
   if (typeof v === 'number') return v;
   if (typeof v !== 'string' || v.trim() === '') return NaN;
-  const limpio = v.trim().replace(',', '.');
+  const s = v.trim();
+  const limpio = /^\d{1,3}(\.\d{3})+$/.test(s) ? s.replace(/\./g, '') : s.replace(',', '.');
   return /^-?\d+(\.\d+)?$/.test(limpio) ? Number(limpio) : NaN;
 }
 
@@ -42,10 +48,10 @@ export function validarSolicitud(raw) {
 
   const c = esObjeto(raw.cliente) ? raw.cliente : {};
   const cliente = {
-    nombre: texto(c.nombre),
-    email: texto(c.email),
-    telefono: texto(c.telefono),
-    direccion: texto(c.direccion),
+    nombre: linea(c.nombre),
+    email: linea(c.email),
+    telefono: linea(c.telefono),
+    direccion: linea(c.direccion),
   };
   if (!cliente.nombre) err('cliente.nombre', 'requerido');
   else if (cliente.nombre.length < LIMITES.nombreMin || cliente.nombre.length > LIMITES.nombreMax) err('cliente.nombre', 'longitud');
@@ -74,7 +80,8 @@ export function validarSolicitud(raw) {
     if (extrasRaw.some((x) => !EXTRAS_ESTANCIA.includes(x))) err(`${p}.extras`, 'desconocido');
     const extras = [...new Set(extrasRaw)].filter((x) => EXTRAS_ESTANCIA.includes(x));
 
-    const notaFoto = texto(est.notaFoto) || null;
+    // La nota de la foto la escribe la IA de visión pero viaja por el navegador: se acota.
+    const notaFoto = linea(est.notaFoto).slice(0, LIMITES.notaFotoMax) || null;
     return { tipo, m2, calidad, extras, notaFoto };
   });
 
@@ -82,7 +89,7 @@ export function validarSolicitud(raw) {
   if (generalesRaw.some((x) => !EXTRAS_GENERALES.includes(x))) err('extrasGenerales', 'desconocido');
   const extrasGenerales = [...new Set(generalesRaw)].filter((x) => EXTRAS_GENERALES.includes(x));
 
-  const descripcion = texto(raw.descripcion);
+  const descripcion = textoLibre(raw.descripcion);
   if (descripcion.length > LIMITES.descripcionMax) err('descripcion', 'longitud');
 
   if (raw.privacidad !== true) err('privacidad', 'privacidad');
@@ -98,23 +105,26 @@ export function validarSolicitud(raw) {
  * - Estancia: m² × tarifa(tipo, calidad).
  * - Extra "por m²": m² de esa estancia × precio. Extra "fijo": su precio, una vez por estancia.
  * - Extras generales (licencia): una vez por solicitud, en una sección aparte.
+ * - Cada importe = ROUND(cantidad × precio; 2), como el Excel: los m² (máx. 2 decimales) se pasan
+ *   a centésimas enteras antes de multiplicar, para que 5,27 × 12,50 dé 65,88 y no 65,87.
  * - IVA: redondeado a céntimos, igual que ROUND(subtotal*0.21; 2) del Excel.
  * - Plazo: suma de los rangos de cada estancia (decisión D11 de la spec).
  */
 export function calcularPresupuesto(solicitud, tarifas) {
   const cents = (euros) => Math.round(euros * 100);
+  const importe = (cantidad, precioCents) => Math.round((Math.round(cantidad * 100) * precioCents) / 100);
   const partidaExtra = (codigo, m2) => {
     const x = tarifas.extras[codigo];
     const porM2 = x.tipo === 'm2';
     const cantidad = porM2 ? m2 : 1;
     const precioUnitarioCents = cents(x.precio);
-    return { codigo, cantidad, unidad: porM2 ? 'm2' : 'ud', precioUnitarioCents, importeCents: Math.round(cantidad * precioUnitarioCents) };
+    return { codigo, cantidad, unidad: porM2 ? 'm2' : 'ud', precioUnitarioCents, importeCents: importe(cantidad, precioUnitarioCents) };
   };
 
   const secciones = solicitud.estancias.map((e, i) => {
     const precioUnitarioCents = cents(tarifas.estancias[e.tipo][e.calidad]);
     const partidas = [
-      { codigo: 'estancia', cantidad: e.m2, unidad: 'm2', precioUnitarioCents, importeCents: Math.round(e.m2 * precioUnitarioCents) },
+      { codigo: 'estancia', cantidad: e.m2, unidad: 'm2', precioUnitarioCents, importeCents: importe(e.m2, precioUnitarioCents) },
       ...EXTRAS_ESTANCIA.filter((x) => e.extras.includes(x)).map((x) => partidaExtra(x, e.m2)),
     ];
     return { estanciaIndex: i, tipo: e.tipo, calidad: e.calidad, m2: e.m2, partidas };
@@ -138,7 +148,8 @@ export function calcularPresupuesto(solicitud, tarifas) {
 
 /**
  * Lee un número tal como lo escribiría una persona en España en una hoja de cálculo:
- * "1.200" → 1200, "1.200,50" → 1200.5, "12,5" → 12.5, "880 €" → 880. NaN si no es un número.
+ * "1.200" → 1200, "1.200,50" → 1200.5, "12,5" → 12.5, "880 €" → 880. NaN si no es un número
+ * o si el formato es inglés/ambiguo ("1,200", "1,200.50"): nunca adivinamos un precio.
  */
 export function parseNumeroES(v) {
   if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
@@ -147,8 +158,13 @@ export function parseNumeroES(v) {
   if (s === '') return NaN;
   const tienePunto = s.includes('.');
   const tieneComa = s.includes(',');
-  if (tienePunto && tieneComa) s = s.replace(/\./g, '').replace(',', '.');
-  else if (tieneComa) s = (s.match(/,/g).length === 1) ? s.replace(',', '.') : 'x';
+  if (tienePunto && tieneComa) {
+    // Formato español: puntos de miles y coma decimal al final ("1.200,50"). "1,200.50" (inglés) no vale.
+    s = /^-?\d{1,3}(\.\d{3})*,\d+$/.test(s) ? s.replace(/\./g, '').replace(',', '.') : 'x';
+  } else if (tieneComa) {
+    // "1,200" es ambiguo (¿1,2 o 1200 en inglés?): mejor NaN que un precio equivocado.
+    s = /^-?\d{1,3}(,\d{3})+$/.test(s) || s.match(/,/g).length > 1 ? 'x' : s.replace(',', '.');
+  }
   else if (tienePunto && /^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
   return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
 }
@@ -162,7 +178,7 @@ function pestanasDesde(valueRanges) {
     const [cabecera = [], ...filas] = vr.values;
     out[nombre] = filas
       .filter((f) => Array.isArray(f) && f.some((c) => String(c ?? '').trim() !== ''))
-      .map((f) => Object.fromEntries(cabecera.map((h, i) => [String(h).trim(), String(f[i] ?? '').trim()])));
+      .map((f) => Object.fromEntries(cabecera.map((h, i) => [String(h).trim(), typeof f[i] === 'number' ? f[i] : String(f[i] ?? '').trim()])));
   }
   return out;
 }
@@ -186,17 +202,31 @@ export function normalizarTarifas(valueRanges) {
     if (!(n > 0)) errores.push(`${donde}: "${valor}" no es un número válido`);
     return n;
   };
-  const porClave = (filas, col) => Object.fromEntries(filas.map((f) => [f[col], f]));
+  // Un precio 5 veces mayor o menor que el de referencia casi seguro es un error al teclear
+  // (o una hoja con otro formato numérico): se usa el respaldo y se avisa a Jordi.
+  const precio = (valor, referencia, donde) => {
+    const n = positivo(valor, donde);
+    if (n > 0 && (n < referencia / 5 || n > referencia * 5)) errores.push(`${donde}: ${n} se aleja demasiado del precio de referencia (${referencia})`);
+    return n;
+  };
+  const porClave = (filas, col, pestana) => {
+    const out = {};
+    for (const f of filas) {
+      if (out[f[col]]) errores.push(`${pestana}: "${f[col]}" está repetido`);
+      out[f[col]] = f;
+    }
+    return out;
+  };
 
-  const filasTarifas = porClave(p.Tarifas, 'estancia');
+  const filasTarifas = porClave(p.Tarifas, 'estancia', 'Tarifas');
   const estancias = {};
   for (const e of ESTANCIAS) {
     const f = filasTarifas[e];
     if (!f) { errores.push(`Tarifas: falta ${e}`); continue; }
-    estancias[e] = Object.fromEntries(CALIDADES.map((c) => [c, positivo(f[c], `Tarifas ${e}/${c}`)]));
+    estancias[e] = Object.fromEntries(CALIDADES.map((c) => [c, precio(f[c], TARIFAS_RESPALDO.estancias[e][c], `Tarifas ${e}/${c}`)]));
   }
 
-  const filasExtras = porClave(p.Extras, 'codigo');
+  const filasExtras = porClave(p.Extras, 'codigo', 'Extras');
   const extras = {};
   for (const codigo of [...EXTRAS_ESTANCIA, ...EXTRAS_GENERALES]) {
     const f = filasExtras[codigo];
@@ -204,12 +234,14 @@ export function normalizarTarifas(valueRanges) {
     const ambitoEsperado = EXTRAS_GENERALES.includes(codigo) ? 'general' : 'estancia';
     if (!['m2', 'fijo'].includes(f.tipo)) errores.push(`Extras ${codigo}: tipo "${f.tipo}" no válido`);
     if (f.ambito !== ambitoEsperado) errores.push(`Extras ${codigo}: ámbito debe ser ${ambitoEsperado}`);
+    // Un extra general se cobra una vez por obra: solo tiene sentido como precio fijo.
+    if (ambitoEsperado === 'general' && f.tipo !== 'fijo') errores.push(`Extras ${codigo}: un extra general debe ser fijo`);
     const descripcion = { es: f.descripcion_es, ca: f.descripcion_ca, en: f.descripcion_en };
     if (!descripcion.es || !descripcion.ca || !descripcion.en) errores.push(`Extras ${codigo}: falta descripción`);
-    extras[codigo] = { tipo: f.tipo, precio: positivo(f.precio, `Extras ${codigo}`), ambito: f.ambito, descripcion };
+    extras[codigo] = { tipo: f.tipo, precio: precio(f.precio, TARIFAS_RESPALDO.extras[codigo].precio, `Extras ${codigo}`), ambito: f.ambito, descripcion };
   }
 
-  const filasPlazos = porClave(p.Plazos, 'estancia');
+  const filasPlazos = porClave(p.Plazos, 'estancia', 'Plazos');
   const plazos = {};
   for (const e of ESTANCIAS) {
     const f = filasPlazos[e];
@@ -217,10 +249,11 @@ export function normalizarTarifas(valueRanges) {
     const min = positivo(f.min_semanas, `Plazos ${e} mín`);
     const max = positivo(f.max_semanas, `Plazos ${e} máx`);
     if (max < min) errores.push(`Plazos ${e}: máx < mín`);
+    if (!Number.isInteger(min) || !Number.isInteger(max)) errores.push(`Plazos ${e}: deben ser semanas enteras`);
     plazos[e] = { min, max };
   }
 
-  const filasQue = porClave(p.QueIncluye, 'calidad');
+  const filasQue = porClave(p.QueIncluye, 'calidad', 'QueIncluye');
   const queIncluye = {};
   for (const c of CALIDADES) {
     const f = filasQue[c];
@@ -238,9 +271,10 @@ export function normalizarTarifas(valueRanges) {
   if (!condiciones.length) errores.push('Condiciones: vacía');
   if (condiciones.some((c) => IDIOMAS.some((i) => !c.titulo[i] || !c.detalle[i]))) errores.push('Condiciones: falta algún texto');
 
-  const cfg = porClave(p.Config, 'clave');
+  const cfg = porClave(p.Config, 'clave', 'Config');
   const ivaPct = parseNumeroES(cfg.iva_pct && cfg.iva_pct.valor);
-  if (!(ivaPct >= 0 && ivaPct < 100)) errores.push('Config: iva_pct no válido');
+  // "0,21" (fracción en vez de porcentaje) o "0" darían un IVA erróneo sin que nadie lo notara.
+  if (!(ivaPct >= 1 && ivaPct <= 50)) errores.push('Config: iva_pct debe ser un porcentaje entre 1 y 50 (p. ej. 21)');
   const validezDias = positivo(cfg.validez_dias && cfg.validez_dias.valor, 'Config validez_dias');
 
   if (errores.length) return { ok: false, tarifas: null, errores };
@@ -262,4 +296,15 @@ export function siguienteNumero(filasSolicitudes, anio, solicitudId) {
     return g ? Math.max(m, Number(g[1])) : m;
   }, 0);
   return { numero: `P-${anio}-${String(max + 1).padStart(4, '0')}`, existente: false };
+}
+
+/**
+ * Número de presupuesto a partir de la fila reservada en la pestaña Solicitudes.
+ * El "append" de Google Sheets es atómico: dos solicitudes simultáneas reciben filas distintas,
+ * así que nunca comparten número. updatedRange: "Solicitudes!A5:R5" → fila 5 → P-AAAA-0004.
+ */
+export function numeroDesdeFila(updatedRange, anio) {
+  const m = /!\$?[A-Z]+\$?(\d+)/.exec(String(updatedRange ?? ''));
+  if (!m || Number(m[1]) < 2) return null;
+  return `P-${anio}-${String(Number(m[1]) - 1).padStart(4, '0')}`;
 }
