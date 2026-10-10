@@ -135,7 +135,7 @@ export function htmlDocumento(p) {
 export function htmlPaginaPDF(p) {
   return `<!doctype html><html lang="${h(p.idioma)}"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>body{margin:0;background:#fff}</style></head><body>${htmlDocumento(p)}</body></html>`;
+<style>@page { size: A4; margin: 10mm 0 } body{margin:0;background:#fff}</style></head><body>${htmlDocumento(p)}</body></html>`;
 }
 
 // ---------- Email (tablas y estilos en línea: lo único que pintan bien Gmail y Outlook) ----------

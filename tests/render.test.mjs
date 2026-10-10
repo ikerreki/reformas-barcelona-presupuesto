@@ -115,4 +115,5 @@ test('htmlPaginaPDF: documento HTML completo con el presupuesto', () => {
   const html = htmlPaginaPDF(presupuestoDe(solicitudMarta()));
   assert.ok(html.startsWith('<!doctype html>'));
   assert.ok(html.includes('8.094,90 €'));
+  assert.match(html, /@page\s*\{\s*size:\s*A4/);
 });
