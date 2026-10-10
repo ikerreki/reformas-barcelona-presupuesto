@@ -14,13 +14,17 @@ import { dirname, join } from 'node:path';
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, '..');
 // Orden de dependencias: cada módulo solo importa de los anteriores.
-const MODULOS = ['catalogo', 'tarifas', 'formato', 'etiquetas', 'pricing', 'guardrail', 'plantilla', 'prompt', 'render', 'foto'];
+const MODULOS = ['catalogo', 'tarifas', 'formato', 'etiquetas', 'pricing', 'hoja', 'numeracion', 'guardrail', 'plantilla', 'prompt', 'render', 'foto'];
 
 function envolverModulo(nombre) {
   const fuente = readFileSync(join(RAIZ, 'engine', `${nombre}.js`), 'utf8');
   const exportados = [];
   const dependencias = [...fuente.matchAll(/^import\s*\{[^}]*\}\s*from\s*'\.\/([\w-]+)\.js'/gm)].map((m) => m[1]);
   const cuerpo = fuente
+    // En n8n se copia sin comentarios (el original comentado vive en engine/).
+    .replace(/\/\*\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '')
+    .replace(/\n{2,}/g, '\n')
     .replace(/^import\s*\{([^}]*)\}\s*from\s*'\.\/([\w-]+)\.js';?\s*$/gm, (_, nombres, mod) => `const {${nombres}} = __${mod};`)
     .replace(/^export\s+(async\s+function|function|const|let)\s+([A-Za-z_$][\w$]*)/gm, (_, tipo, id) => {
       exportados.push(id);
@@ -56,13 +60,19 @@ export function buildCodigoNodo(nombre) {
   const todos = MODULOS.filter((m) => existsSync(join(RAIZ, 'engine', `${m}.js`))).map(envolverModulo);
   const modulos = modulosNecesarios(nodo, todos);
   const publicos = modulos.map((m) => `const { ${m.exportados.join(', ')} } = __${m.nombre};`).join('\n');
+  // Primero la lógica del nodo (lo que interesa leer en n8n), dentro de una función que se
+  // llama al final, cuando el motor ya está cargado.
   return [
+    `// ===== Paso «${nombre}»: lo que hace este nodo =====`,
+    `async function paso() {`,
+    nodo,
+    `}`,
+    ``,
     `// ===== Motor de Reformas Barcelona (generado por n8n/build.mjs desde engine/; no editar aquí) =====`,
     ...modulos.map((m) => m.codigo),
     publicos,
     `const CONFIG = ${JSON.stringify(configPublica())};`,
-    `// ===== Nodo: ${nombre} =====`,
-    nodo,
+    `return paso();`,
   ].join('\n');
 }
 

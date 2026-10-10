@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { siguienteNumero } from '../engine/pricing.js';
+import { siguienteNumero } from '../engine/numeracion.js';
 
 test('sin solicitudes previas: P-2026-0001', () => {
   assert.deepEqual(siguienteNumero([], 2026, 'nuevo-0001'), { numero: 'P-2026-0001', existente: false });

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseNumeroES, normalizarTarifas } from '../engine/pricing.js';
+import { parseNumeroES, normalizarTarifas } from '../engine/hoja.js';
 import { TARIFAS_RESPALDO } from '../engine/tarifas.js';
 import { valueRangesDesde, cambiarCelda } from './fixtures.mjs';
 

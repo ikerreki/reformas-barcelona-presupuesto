@@ -41,6 +41,12 @@ test('cada nodo incluye solo los módulos que usa (el MCP de n8n admite 300.000 
   assert.ok(total < 200000, `los 5 nodos ocupan ${total} caracteres`);
 });
 
+test('en n8n se ve primero la lógica del nodo y después el motor generado', () => {
+  const c = buildCodigoNodo('calcular');
+  assert.ok(c.indexOf('Nodo «Calcular»') < c.indexOf('const __pricing'), 'el cuerpo del nodo va antes que el motor');
+  assert.ok(!c.includes('Motor de cálculo de Reformas Barcelona.'), 'los comentarios del motor no se copian a n8n');
+});
+
 test('hoyEnMadrid devuelve AAAA-MM-DD en hora de Madrid', () => {
   assert.equal(hoyEnMadrid(new Date('2026-12-31T23:30:00Z')), '2027-01-01');
   assert.match(hoyEnMadrid(), /^\d{4}-\d{2}-\d{2}$/);

@@ -1,7 +1,9 @@
 // Tests que reproducen los hallazgos de la revisión independiente de la fase 1.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseNumeroES, normalizarTarifas, validarSolicitud, calcularPresupuesto, numeroDesdeFila } from '../engine/pricing.js';
+import { validarSolicitud, calcularPresupuesto } from '../engine/pricing.js';
+import { parseNumeroES, normalizarTarifas } from '../engine/hoja.js';
+import { numeroDesdeFila } from '../engine/numeracion.js';
 import { contieneImportes, validarTextosIA } from '../engine/guardrail.js';
 import { construirPromptRedaccion } from '../engine/prompt.js';
 import { textosPlantilla } from '../engine/plantilla.js';
