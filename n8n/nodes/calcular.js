@@ -13,10 +13,22 @@ const anio = Number(fechaISO.slice(0, 4));
 let numero = null;
 let numeroExistente = false;
 let numeroProvisional = false;
+let filaExistente = null;
+let limiteExcedido = false;
 if (valueRanges) {
   const vrSolicitudes = valueRanges.find((r) => String(r.range || '').replace(/^'/, '').startsWith('Solicitudes'));
-  const previa = siguienteNumero((vrSolicitudes && vrSolicitudes.values) || [], anio, solicitud.solicitudId);
-  if (previa.existente) ({ numero, existente: numeroExistente } = previa);
+  const filas = (vrSolicitudes && vrSolicitudes.values) || [];
+  const previa = siguienteNumero(filas, anio, solicitud.solicitudId);
+  if (previa.existente && previa.pendiente) {
+    // Un intento anterior reservó la fila pero no llegó al final: se termina ahora, en esa misma fila,
+    // y se envían los correos que no salieron.
+    numero = previa.numero;
+    filaExistente = `Solicitudes!A${previa.fila}:R${previa.fila}`;
+  } else if (previa.existente) {
+    ({ numero, existente: numeroExistente } = previa);
+  } else {
+    limiteExcedido = excedeLimite(filas, solicitud.cliente.email, fechaISO, LIMITES.solicitudesDiaPorEmail);
+  }
 } else {
   // Sin hoja no hay numeración fiable: número provisional único y aviso a Jordi.
   numero = `P-${anio}-T${Date.now().toString(36).toUpperCase()}`;
@@ -39,7 +51,9 @@ return [{
     numero,
     numeroExistente,
     numeroProvisional,
-    reservar: Boolean(valueRanges) && !numeroExistente,
+    filaExistente,
+    limiteExcedido,
+    reservar: Boolean(valueRanges) && !numeroExistente && !filaExistente && !limiteExcedido,
     filaReserva,
     fechaISO,
     promptRedaccion: construirPromptRedaccion({ solicitud, tarifas }),

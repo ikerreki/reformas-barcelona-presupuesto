@@ -49,6 +49,9 @@ const tituloSeccion = (s, E) => (s.tipo === 'general' ? E.doc.general : `${E.est
 
 // ---------- Documento (web, descarga en PDF y PDF adjunto) ----------
 
+// Las reglas de pantalla estrecha no se aplican mientras la web genera el PDF (clase presupuesto--pdf):
+// así el PDF descargado desde el móvil tiene el mismo diseño que el de escritorio.
+const PANTALLA = '.presupuesto:not(.presupuesto--pdf)';
 const CSS_DOCUMENTO = `
 .presupuesto{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;color:${C.antracita};background:#fff;
   max-width:800px;margin:0 auto;padding:40px 44px;font-size:14px;line-height:1.55;box-sizing:border-box}
@@ -76,14 +79,16 @@ const CSS_DOCUMENTO = `
 .presupuesto .totales td:last-child{text-align:right;white-space:nowrap}
 .presupuesto .totales tr.iva td{border-bottom:1px solid ${C.antracita};padding-bottom:10px}
 .presupuesto .totales tr.total td{color:${C.terracota};font-weight:800;font-size:20px;padding-top:12px}
+/* Título + contenido no se separan entre páginas del PDF (html2pdf en la web y Chrome en PDF.co). */
+.presupuesto .bloque{break-inside:avoid}
 .presupuesto .plazo{margin-top:18px}
 .presupuesto .firma{margin-top:28px}
 .presupuesto .pie{margin-top:32px;padding-top:12px;border-top:1px solid ${C.linea};color:${C.gris};font-size:11.5px;text-align:center}
-@media (max-width:600px){.presupuesto{padding:22px 16px}.presupuesto .cab{flex-direction:column}.presupuesto .empresa{text-align:left;overflow-wrap:anywhere}
-  .presupuesto .cab img{height:auto;width:100%;max-width:260px}
-  .presupuesto .datos tr{display:block;margin-bottom:6px}.presupuesto .datos td{display:block;padding:0}
-  .presupuesto .partidas .pu{display:none}.presupuesto h1{font-size:20px}
-  .presupuesto .totales{min-width:0;width:100%}}
+@media (max-width:600px){${PANTALLA}{padding:22px 16px}${PANTALLA} .cab{flex-direction:column}${PANTALLA} .empresa{text-align:left;overflow-wrap:anywhere}
+  ${PANTALLA} .cab img{height:auto;width:100%;max-width:260px}
+  ${PANTALLA} .datos tr{display:block;margin-bottom:6px}${PANTALLA} .datos td{display:block;padding:0}
+  ${PANTALLA} .partidas .pu{display:none}${PANTALLA} h1{font-size:20px}
+  ${PANTALLA} .totales{min-width:0;width:100%}}
 `;
 
 /** <article> autocontenido (con su <style> acotado a .presupuesto). */
@@ -113,18 +118,18 @@ export function htmlDocumento(p) {
 <table class="datos">${datos}</table>
 <p>${h(p.textos.saludo)}</p>
 <p>${h(p.textos.resumen)}</p>
-<h2>${h(D.trabajos)}</h2>
-<ul>${p.textos.trabajos.map((t) => `<li>${h(t)}</li>`).join('')}</ul>
-<h2>${h(D.presupuesto)}</h2>
+<div class="bloque"><h2>${h(D.trabajos)}</h2>
+<ul>${p.textos.trabajos.map((t) => `<li>${h(t)}</li>`).join('')}</ul></div>
+<div class="bloque"><h2>${h(D.presupuesto)}</h2>
 <table class="partidas"><thead><tr><th>${h(D.colConcepto)}</th><th class="n">${h(D.colCantidad)}</th><th class="n pu">${h(D.colPrecio)}</th><th class="n">${h(D.colImporte)}</th></tr></thead>
-<tbody>${filas}</tbody></table>
+<tbody>${filas}</tbody></table></div>
 <table class="totales"><tr><td>${h(D.subtotal)}</td><td>${eur(p.subtotal)}</td></tr>
 <tr class="iva"><td>${h(D.iva(p.ivaPct))}</td><td>${eur(p.iva)}</td></tr>
 <tr class="total"><td>${h(D.total)}</td><td>${eur(p.total)}</td></tr></table>
 <p class="plazo"><strong>${h(D.plazo)}:</strong> ${h(formatPlazo(p.plazo, p.idioma))} ${h(D.plazoDesde)}.<br>
 <strong>${h(D.validoHasta)}:</strong> ${h(formatFecha(p.validoHasta, p.idioma))}</p>
-<h2>${h(D.condiciones)}</h2>
-<ul>${p.condiciones.map((c) => `<li><strong>${h(c.titulo)}:</strong> ${h(c.detalle)}</li>`).join('')}</ul>
+<div class="bloque"><h2>${h(D.condiciones)}</h2>
+<ul>${p.condiciones.map((c) => `<li><strong>${h(c.titulo)}:</strong> ${h(c.detalle)}</li>`).join('')}</ul></div>
 <p>${h(p.textos.cierre)}</p>
 <p class="firma">${h(D.despedida)}<br><strong>${h(EMPRESA.gerente)}</strong><br>${h(D.cargo)}</p>
 <footer class="pie">${h(EMPRESA.razonSocial)} · ${h(EMPRESA.direccion)} · ${h(EMPRESA.telefono)}</footer>

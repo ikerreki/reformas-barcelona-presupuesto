@@ -5,7 +5,8 @@ const anio = Number(c.fechaISO.slice(0, 4));
 
 let numero = c.numero;
 let numeroProvisional = c.numeroProvisional;
-let filaReservada = null;
+// Solicitud reanudada: ya tiene fila (reservada en un intento anterior que no terminó).
+let filaReservada = c.filaExistente || null;
 
 if (c.reservar) {
   const respuesta = $input.first().json || {};

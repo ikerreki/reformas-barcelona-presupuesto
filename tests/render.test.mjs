@@ -117,3 +117,28 @@ test('htmlPaginaPDF: documento HTML completo con el presupuesto', () => {
   assert.ok(html.includes('8.094,90 €'));
   assert.match(html, /@page\s*\{\s*size:\s*A4/);
 });
+
+test('el PDF nunca usa el diseño de móvil: las reglas de pantalla estrecha excluyen .presupuesto--pdf', () => {
+  // html2pdf calcula los saltos de página con el CSS de la ventana: si en el móvil se aplicaran las reglas
+  // estrechas, metería separadores dentro de la tabla y los totales saldrían descolocados.
+  const html = htmlDocumento(presupuestoDe(solicitudMarta()));
+  const ini = html.indexOf('@media (max-width:600px){');
+  assert.ok(ini !== -1);
+  let nivel = 0, fin = ini;
+  for (let i = html.indexOf('{', ini); i < html.length; i++) {
+    if (html[i] === '{') nivel++;
+    if (html[i] === '}' && --nivel === 0) { fin = i; break; }
+  }
+  const reglas = html.slice(html.indexOf('{', ini) + 1, fin);
+  const selectores = [...reglas.matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap((m) => m[1].split(',')).map((s) => s.trim());
+  assert.ok(selectores.length >= 8);
+  for (const s of selectores) assert.match(s, /^\.presupuesto:not\(\.presupuesto--pdf\)/, s);
+});
+
+test('en el PDF cada título viaja con su contenido (bloque que no se parte entre páginas)', () => {
+  const html = htmlDocumento(presupuestoDe(solicitudMarta()));
+  assert.equal((html.match(/<h2>/g) || []).length, 3);
+  assert.equal((html.match(/<div class="bloque"><h2>[^<]*<\/h2>\s*<(ul|table)/g) || []).length, 3, 'los 3 títulos van dentro de un bloque con su lista o tabla');
+  assert.match(html, /\.presupuesto \.bloque\{break-inside:avoid\}/);
+  assert.ok(!/tr\{[^}]*break-inside/.test(html), 'nunca break-inside en filas: html2pdf metería divs dentro de la tabla');
+});

@@ -4,7 +4,8 @@
 import { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS, LIMITES } from './catalogo.js';
 
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Una sola dirección: sin comas, puntos y coma ni <>, que Gmail interpretaría como varios destinatarios.
+const EMAIL_RE = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
 // Campos de una sola línea: sin saltos ni caracteres de control (evita colar instrucciones o cabeceras).
@@ -73,7 +74,7 @@ export function validarSolicitud(raw) {
 
     const m2 = leerM2(est.m2);
     if (Number.isNaN(m2)) err(`${p}.m2`, 'formato');
-    else if (m2 <= 0 || m2 > LIMITES.m2Max) err(`${p}.m2`, 'rango');
+    else if (m2 < LIMITES.m2Min || m2 > LIMITES.m2Max) err(`${p}.m2`, 'rango');
     else if (decimales(m2) > 2) err(`${p}.m2`, 'formato');
 
     const extrasRaw = Array.isArray(est.extras) ? est.extras.map(texto) : [];

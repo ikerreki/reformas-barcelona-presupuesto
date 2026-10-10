@@ -121,6 +121,48 @@ test('nodo calcular: fila reservada pero aún sin número (otra ejecución en cu
   assert.equal(out.numeroExistente, true);
 });
 
+// Fila A:R de Solicitudes como la deja el flujo (estado en la columna R).
+const filaHoja = (numero, id, { fecha = hoyEnMadrid(), email = 'otro@ejemplo.com', estado = 'nuevo' } = {}) => {
+  const f = Array(18).fill('');
+  f[0] = numero; f[1] = id; f[2] = fecha; f[4] = email; f[17] = estado;
+  return f;
+};
+
+test('nodo calcular: reintento de una solicitud que se quedó a medias (pendiente) → se reanuda en su fila', async () => {
+  const vr = valueRangesDesde(TARIFAS_RESPALDO, [filaHoja(`P-${anio}-0001`, 'x'), filaHoja('', 'test-0001', { estado: 'pendiente' })]);
+  const out = await ejecutarNodo('calcular', { input: { valueRanges: vr }, nodos: { Validar: { ok: true, solicitud: solicitudMarta() } } });
+  assert.equal(out.numero, `P-${anio}-0002`);
+  assert.equal(out.numeroExistente, false, 'no es un duplicado: hay que terminarla y enviar los correos');
+  assert.equal(out.reservar, false, 'la fila ya existe');
+  assert.equal(out.filaExistente, 'Solicitudes!A3:R3');
+});
+
+test('nodo calcular: un email que ya ha pedido el máximo de hoy → límite excedido y sin reserva', async () => {
+  const filas = Array.from({ length: 10 }, (_, i) => filaHoja(`P-${anio}-000${i}`, `id-${i}`, { email: 'Marta.Puig@ejemplo.com' }));
+  const out = await ejecutarNodo('calcular', {
+    input: { valueRanges: valueRangesDesde(TARIFAS_RESPALDO, filas) },
+    nodos: { Validar: { ok: true, solicitud: solicitudMarta() } },
+  });
+  assert.equal(out.limiteExcedido, true);
+  assert.equal(out.reservar, false);
+});
+
+test('nodo calcular: el reintento de una solicitud ya registrada no cuenta para el límite', async () => {
+  const filas = Array.from({ length: 10 }, (_, i) => filaHoja(`P-${anio}-000${i}`, i === 9 ? 'test-0001' : `id-${i}`, { email: 'marta.puig@ejemplo.com' }));
+  const out = await ejecutarNodo('calcular', {
+    input: { valueRanges: valueRangesDesde(TARIFAS_RESPALDO, filas) },
+    nodos: { Validar: { ok: true, solicitud: solicitudMarta() } },
+  });
+  assert.equal(out.limiteExcedido, false);
+  assert.equal(out.numeroExistente, true);
+});
+
+test('nodo asignar-numero: solicitud reanudada → completa su fila de siempre', async () => {
+  const calcular = { reservar: false, numero: `P-${anio}-0002`, numeroProvisional: false, numeroExistente: false, filaExistente: 'Solicitudes!A3:R3', fechaISO: `${anio}-10-10` };
+  const out = await ejecutarNodo('asignar-numero', { input: calcular, nodos: { Calcular: calcular } });
+  assert.deepEqual(out, { numero: `P-${anio}-0002`, numeroProvisional: false, numeroExistente: false, filaReservada: 'Solicitudes!A3:R3' });
+});
+
 test('nodo asignar-numero: el número sale de la fila que Google reservó', async () => {
   const calcular = { reservar: true, numero: null, numeroProvisional: false, numeroExistente: false, fechaISO: `${anio}-10-10` };
   const out = await ejecutarNodo('asignar-numero', {

@@ -11,7 +11,9 @@ export const IDIOMAS = ['es', 'ca', 'en'];
 
 export const LIMITES = {
   maxEstancias: 6,
+  m2Min: 1,
   m2Max: 500,
+  solicitudesDiaPorEmail: 10,
   nombreMin: 2,
   nombreMax: 100,
   telefonoMax: 30,

@@ -9,12 +9,13 @@ import { UI, mensajeError } from './i18n.js';
 import { ICONOS } from './iconos.js';
 
 const $ = (sel, raiz = document) => raiz.querySelector(sel);
-const nuevoId = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+export const nuevoId = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 const estanciaVacia = () => ({ tipo: '', m2: '', calidad: 'media', extras: [], notaFoto: null });
 
 export const estado = {
   idioma: 'es',
   solicitudId: nuevoId(),
+  huella: null,            // datos del último envío con este solicitudId (ver idempotencia.js)
   estancias: [estanciaVacia()],
   licencia: false,
   tocados: new Set(),
@@ -22,6 +23,7 @@ export const estado = {
 
 export function nuevaSolicitud() {
   estado.solicitudId = nuevoId();
+  estado.huella = null;
 }
 
 // ---------- Pintar ----------

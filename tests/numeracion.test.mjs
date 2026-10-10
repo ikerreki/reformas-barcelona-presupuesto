@@ -13,13 +13,13 @@ test('sigue al mayor número del año (aunque estén desordenados)', () => {
 
 test('idempotencia: un solicitudId ya registrado devuelve su número', () => {
   const filas = [['P-2026-0007', 'a'], ['P-2026-0012', 'b']];
-  assert.deepEqual(siguienteNumero(filas, 2026, 'b'), { numero: 'P-2026-0012', existente: true });
+  assert.deepEqual(siguienteNumero(filas, 2026, 'b'), { numero: 'P-2026-0012', existente: true, pendiente: false, fila: 3 });
 });
 
 test('idempotencia con fila reservada aún sin número: el número sale de su posición', () => {
   // fila 0 → P-2026-0001 (hoja: fila 2), fila 2 → P-2026-0003 (hoja: fila 4)
   const filas = [['P-2026-0001', 'a'], ['P-2026-0002', 'b'], ['', 'c']];
-  assert.deepEqual(siguienteNumero(filas, 2026, 'c'), { numero: 'P-2026-0003', existente: true });
+  assert.deepEqual(siguienteNumero(filas, 2026, 'c'), { numero: 'P-2026-0003', existente: true, pendiente: false, fila: 4 });
 });
 
 test('los números de otros años no cuentan', () => {

@@ -1,6 +1,7 @@
 // Punto de entrada: idioma, envío, progreso, errores y resultado.
 import { UI, idiomaInicial, guardarIdioma, aplicarIdioma } from './i18n.js';
-import { estado, iniciarFormulario, pintarEstancias, leerFormulario, rellenarFormulario, vaciarFormulario, mostrarErrores, validar, nuevaSolicitud } from './form.js';
+import { estado, iniciarFormulario, pintarEstancias, leerFormulario, rellenarFormulario, vaciarFormulario, mostrarErrores, validar, nuevaSolicitud, nuevoId } from './form.js';
+import { idParaEnvio } from './idempotencia.js';
 import { enviarPresupuesto } from './api.js';
 import { mostrarResultado, ocultarResultado, descargarPDF } from './resultado.js';
 import { iniciarFotos } from './foto.js';
@@ -40,7 +41,7 @@ function pararProgreso() {
 function mostrarBanner(clave) {
   $('#banner-texto').textContent = UI[estado.idioma][clave];
   $('#banner-error').hidden = false;
-  $('#reintentar').hidden = clave === 'error.revisa';
+  $('#reintentar').hidden = clave === 'error.revisa' || clave === 'error.limite';
   $('#banner-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -60,17 +61,20 @@ async function enviar(ev) {
     return;
   }
 
-  // 2) Envío a n8n. El solicitudId se mantiene en los reintentos (idempotencia).
+  // 2) Envío a n8n. Mismos datos → mismo solicitudId (un reintento no duplica); datos cambiados → id nuevo.
+  const { solicitudId, ...datos } = leerFormulario();
+  ({ id: estado.solicitudId, huella: estado.huella } = idParaEnvio({ id: solicitudId, huella: estado.huella }, datos, nuevoId));
+  const enviado = { ...datos, solicitudId: estado.solicitudId };
   enviando = true;
   $('#enviar').disabled = true;
   empezarProgreso();
-  const r = await enviarPresupuesto(leerFormulario());
+  const r = await enviarPresupuesto(enviado);
   pararProgreso();
   enviando = false;
   $('#enviar').disabled = false;
 
   if (r.tipo === 'ok' && r.presupuesto) {
-    ultimo = { raw: leerFormulario(), presupuesto: r.presupuesto };
+    ultimo = { raw: enviado, presupuesto: r.presupuesto };   // lo enviado, aunque se tocara el formulario mientras
     mostrarResultado(r.presupuesto);
   } else if (r.tipo === 'validacion') {
     r.errores.forEach((e) => estado.tocados.add(e.campo));
