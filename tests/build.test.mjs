@@ -47,6 +47,17 @@ test('en n8n se ve primero la lógica del nodo y después el motor generado', ()
   assert.ok(!c.includes('Motor de cálculo de Reformas Barcelona.'), 'los comentarios del motor no se copian a n8n');
 });
 
+test('el prompt que genera n8n es idéntico al del motor (el empaquetado no toca los textos)', async () => {
+  const { construirPromptRedaccion } = await import('../engine/prompt.js');
+  const { validarSolicitud } = await import('../engine/pricing.js');
+  const out = await ejecutarNodo('calcular', {
+    input: { valueRanges: valueRangesDesde(TARIFAS_RESPALDO) },
+    nodos: { Validar: { ok: true, solicitud: solicitudMarta() } },
+  });
+  const esperado = construirPromptRedaccion({ solicitud: validarSolicitud(solicitudMarta()).solicitud, tarifas: TARIFAS_RESPALDO });
+  assert.equal(out.promptRedaccion, esperado);
+});
+
 test('hoyEnMadrid devuelve AAAA-MM-DD en hora de Madrid', () => {
   assert.equal(hoyEnMadrid(new Date('2026-12-31T23:30:00Z')), '2027-01-01');
   assert.match(hoyEnMadrid(), /^\d{4}-\d{2}-\d{2}$/);

@@ -24,7 +24,6 @@ function envolverModulo(nombre) {
     // En n8n se copia sin comentarios (el original comentado vive en engine/).
     .replace(/\/\*\*[\s\S]*?\*\//g, '')
     .replace(/^\s*\/\/.*$/gm, '')
-    .replace(/\n{2,}/g, '\n')
     .replace(/^import\s*\{([^}]*)\}\s*from\s*'\.\/([\w-]+)\.js';?\s*$/gm, (_, nombres, mod) => `const {${nombres}} = __${mod};`)
     .replace(/^export\s+(async\s+function|function|const|let)\s+([A-Za-z_$][\w$]*)/gm, (_, tipo, id) => {
       exportados.push(id);

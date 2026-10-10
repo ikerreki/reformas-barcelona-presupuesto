@@ -30,10 +30,14 @@ return [{ json: { numero, numeroProvisional, numeroExistente: c.numeroExistente,
 // ===== Motor de Reformas Barcelona (generado por n8n/build.mjs desde engine/; no editar aquí) =====
 const __numeracion = (() => {
 
+
+
 function siguienteNumero(filasSolicitudes, anio, solicitudId) {
   const filas = Array.isArray(filasSolicitudes) ? filasSolicitudes : [];
   const i = filas.findIndex((f) => Array.isArray(f) && f[1] && f[1] === solicitudId);
   if (i !== -1) {
+
+
     const n = String(filas[i][0] ?? '');
     return { numero: /^P-\d{4}-\d{4,}$/.test(n) ? n : `P-${anio}-${String(i + 1).padStart(4, '0')}`, existente: true };
   }
@@ -44,6 +48,8 @@ function siguienteNumero(filasSolicitudes, anio, solicitudId) {
   }, 0);
   return { numero: `P-${anio}-${String(max + 1).padStart(4, '0')}`, existente: false };
 }
+
+
 function numeroDesdeFila(updatedRange, anio) {
   const m = /!\$?[A-Z]+\$?(\d+)/.exec(String(updatedRange ?? ''));
   if (!m || Number(m[1]) < 2) return null;

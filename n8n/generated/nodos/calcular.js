@@ -53,11 +53,16 @@ return [{
 // ===== Motor de Reformas Barcelona (generado por n8n/build.mjs desde engine/; no editar aquí) =====
 const __catalogo = (() => {
 
+
+
 const ESTANCIAS = ['bano', 'cocina', 'salon', 'dormitorio', 'vivienda'];
 const CALIDADES = ['basica', 'media', 'alta'];
+
 const EXTRAS_ESTANCIA = ['demolicion', 'fontaneria', 'electricidad', 'pintura', 'suelo_radiante', 'aire'];
+
 const EXTRAS_GENERALES = ['licencia'];
 const IDIOMAS = ['es', 'ca', 'en'];
+
 const LIMITES = {
   maxEstancias: 6,
   m2Max: 500,
@@ -68,6 +73,7 @@ const LIMITES = {
   descripcionMax: 1000,
   notaFotoMax: 300,
 };
+
 const EMPRESA = {
   nombre: 'Reformas Barcelona',
   razonSocial: 'Reformas Barcelona, S.L. (empresa ficticia)',
@@ -85,6 +91,10 @@ return { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS, LIMIT
 })();
 const __tarifas = (() => {
 
+
+
+
+
 const TARIFAS_RESPALDO = {
   estancias: {
     bano:       { basica: 620, media: 880, alta: 1250 },
@@ -93,6 +103,7 @@ const TARIFAS_RESPALDO = {
     dormitorio: { basica: 100, media: 155, alta: 240 },
     vivienda:   { basica: 520, media: 750, alta: 1100 },
   },
+
   extras: {
     demolicion: {
       tipo: 'm2', precio: 35, ambito: 'estancia',
@@ -151,6 +162,7 @@ const TARIFAS_RESPALDO = {
       },
     },
   },
+
   plazos: {
     bano:       { min: 2, max: 3 },
     cocina:     { min: 3, max: 4 },
@@ -158,6 +170,7 @@ const TARIFAS_RESPALDO = {
     dormitorio: { min: 1, max: 2 },
     vivienda:   { min: 8, max: 12 },
   },
+
   queIncluye: {
     basica: {
       es: 'Materiales de gama económica: azulejo cerámico liso, sanitarios y grifería estándar, pintura plástica blanca.',
@@ -175,6 +188,7 @@ const TARIFAS_RESPALDO = {
       en: 'Large-format porcelain tiles, made-to-measure joinery, stone worktops, basic home automation and integrated LED lighting.',
     },
   },
+
   condiciones: [
     {
       titulo: { es: 'Validez del presupuesto', ca: 'Validesa del pressupost', en: 'Quote validity' },
@@ -225,12 +239,15 @@ const TARIFAS_RESPALDO = {
       },
     },
   ],
+
   config: { ivaPct: 21, validezDias: 30 },
 };
 
 return { TARIFAS_RESPALDO };
 })();
 const __formato = (() => {
+
+
 
 function formatEUR(cents) {
   const negativo = cents < 0;
@@ -240,12 +257,17 @@ function formatEUR(cents) {
   const miles = String(euros).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `${negativo ? '-' : ''}${miles}${resto ? ',' + String(resto).padStart(2, '0') : ''} €`;
 }
+
+
 const formatM2 = (n) => String(n).replace('.', ',');
+
 const MESES = {
   es: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
   ca: ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'],
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 };
+
+
 function formatFecha(iso, idioma) {
   const [a, m, d] = iso.split('-').map(Number);
   const mes = MESES[idioma][m - 1];
@@ -253,15 +275,22 @@ function formatFecha(iso, idioma) {
   if (idioma === 'ca') return `${d} ${/^[aeiou]/i.test(mes) ? "d'" : 'de '}${mes} de ${a}`;
   return `${d} de ${mes} de ${a}`;
 }
+
+
 function sumarDias(iso, dias) {
   const f = new Date(`${iso}T00:00:00Z`);
   f.setUTCDate(f.getUTCDate() + dias);
   return f.toISOString().slice(0, 10);
 }
+
+
 function hoyEnMadrid(ahora = new Date()) {
   return ahora.toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
 }
+
 const SEMANAS = { es: 'semanas', ca: 'setmanes', en: 'weeks' };
+
+
 function formatPlazo({ minSemanas, maxSemanas }, idioma) {
   const rango = minSemanas === maxSemanas ? `${minSemanas}` : `${minSemanas}–${maxSemanas}`;
   return `${rango} ${SEMANAS[idioma]}`;
@@ -270,6 +299,8 @@ function formatPlazo({ minSemanas, maxSemanas }, idioma) {
 return { formatEUR, formatM2, formatFecha, sumarDias, hoyEnMadrid, formatPlazo };
 })();
 const __etiquetas = (() => {
+
+
 
 const ETIQUETAS = {
   es: {
@@ -357,11 +388,15 @@ const ETIQUETAS = {
     },
   },
 };
+
+
 function conceptoPartida(partida, seccion, idioma) {
   const E = ETIQUETAS[idioma];
   if (partida.codigo === 'estancia') return E.concepto(E.estanciaMin[seccion.tipo], E.calidad[seccion.calidad]);
   return E.extra[partida.codigo];
 }
+
+
 function listaEstancias(tipos, idioma) {
   const E = ETIQUETAS[idioma];
   const nombres = tipos.map((t) => E.estanciaMin[t]);
@@ -373,12 +408,18 @@ return { ETIQUETAS, conceptoPartida, listaEstancias };
 })();
 const __pricing = (() => {
 
+
+
 const { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS, LIMITES } = __catalogo;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
+
 const linea = (v) => texto(v).replace(/[\s\p{Cc}]+/gu, ' ');
+
 const textoLibre = (v) => texto(v).replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, '');
 const esObjeto = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
 function leerM2(v) {
   if (typeof v === 'number') return v;
   if (typeof v !== 'string' || v.trim() === '') return NaN;
@@ -386,19 +427,27 @@ function leerM2(v) {
   const limpio = /^\d{1,3}(\.\d{3})+$/.test(s) ? s.replace(/\./g, '') : s.replace(',', '.');
   return /^-?\d+(\.\d+)?$/.test(limpio) ? Number(limpio) : NaN;
 }
+
 const decimales = (n) => (String(n).split('.')[1] || '').length;
+
+
 function validarSolicitud(raw) {
   const errores = [];
   const err = (campo, codigo) => errores.push({ campo, codigo });
+
   if (!esObjeto(raw)) {
     return { ok: false, esBot: false, solicitud: null, errores: [{ campo: 'solicitud', codigo: 'formato' }] };
   }
+
   const esBot = texto(raw.website) !== '';
+
   const solicitudId = texto(raw.solicitudId);
   if (!solicitudId) err('solicitudId', 'requerido');
   else if (solicitudId.length < 8 || solicitudId.length > 64) err('solicitudId', 'longitud');
+
   const idioma = texto(raw.idioma);
   if (!IDIOMAS.includes(idioma)) err('idioma', 'desconocido');
+
   const c = esObjeto(raw.cliente) ? raw.cliente : {};
   const cliente = {
     nombre: linea(c.nombre),
@@ -412,8 +461,10 @@ function validarSolicitud(raw) {
   else if (!EMAIL_RE.test(cliente.email)) err('cliente.email', 'formato');
   if (cliente.telefono.length > LIMITES.telefonoMax) err('cliente.telefono', 'longitud');
   if (cliente.direccion.length > LIMITES.direccionMax) err('cliente.direccion', 'longitud');
+
   const estanciasRaw = Array.isArray(raw.estancias) ? raw.estancias : [];
   if (estanciasRaw.length < 1 || estanciasRaw.length > LIMITES.maxEstancias) err('estancias', 'rango');
+
   const estancias = estanciasRaw.slice(0, LIMITES.maxEstancias).map((e, i) => {
     const p = `estancias[${i}]`;
     const est = esObjeto(e) ? e : {};
@@ -421,26 +472,35 @@ function validarSolicitud(raw) {
     const calidad = texto(est.calidad);
     if (!ESTANCIAS.includes(tipo)) err(`${p}.tipo`, 'desconocido');
     if (!CALIDADES.includes(calidad)) err(`${p}.calidad`, 'desconocido');
+
     const m2 = leerM2(est.m2);
     if (Number.isNaN(m2)) err(`${p}.m2`, 'formato');
     else if (m2 <= 0 || m2 > LIMITES.m2Max) err(`${p}.m2`, 'rango');
     else if (decimales(m2) > 2) err(`${p}.m2`, 'formato');
+
     const extrasRaw = Array.isArray(est.extras) ? est.extras.map(texto) : [];
     if (extrasRaw.some((x) => !EXTRAS_ESTANCIA.includes(x))) err(`${p}.extras`, 'desconocido');
     const extras = [...new Set(extrasRaw)].filter((x) => EXTRAS_ESTANCIA.includes(x));
+
     const notaFoto = linea(est.notaFoto).slice(0, LIMITES.notaFotoMax) || null;
     return { tipo, m2, calidad, extras, notaFoto };
   });
+
   const generalesRaw = Array.isArray(raw.extrasGenerales) ? raw.extrasGenerales.map(texto) : [];
   if (generalesRaw.some((x) => !EXTRAS_GENERALES.includes(x))) err('extrasGenerales', 'desconocido');
   const extrasGenerales = [...new Set(generalesRaw)].filter((x) => EXTRAS_GENERALES.includes(x));
+
   const descripcion = textoLibre(raw.descripcion);
   if (descripcion.length > LIMITES.descripcionMax) err('descripcion', 'longitud');
+
   if (raw.privacidad !== true) err('privacidad', 'privacidad');
+
   const ok = errores.length === 0 && !esBot;
   const solicitud = { solicitudId, idioma, cliente, estancias, extrasGenerales, descripcion, privacidad: raw.privacidad === true };
   return { ok, esBot, solicitud: ok ? solicitud : null, errores };
 }
+
+
 function calcularPresupuesto(solicitud, tarifas) {
   const cents = (euros) => Math.round(euros * 100);
   const importe = (cantidad, precioCents) => Math.round((Math.round(cantidad * 100) * precioCents) / 100);
@@ -451,6 +511,7 @@ function calcularPresupuesto(solicitud, tarifas) {
     const precioUnitarioCents = cents(x.precio);
     return { codigo, cantidad, unidad: porM2 ? 'm2' : 'ud', precioUnitarioCents, importeCents: importe(cantidad, precioUnitarioCents) };
   };
+
   const secciones = solicitud.estancias.map((e, i) => {
     const precioUnitarioCents = cents(tarifas.estancias[e.tipo][e.calidad]);
     const partidas = [
@@ -459,10 +520,12 @@ function calcularPresupuesto(solicitud, tarifas) {
     ];
     return { estanciaIndex: i, tipo: e.tipo, calidad: e.calidad, m2: e.m2, partidas };
   });
+
   const generales = EXTRAS_GENERALES.filter((x) => (solicitud.extrasGenerales || []).includes(x));
   if (generales.length) {
     secciones.push({ estanciaIndex: null, tipo: 'general', partidas: generales.map((x) => partidaExtra(x, 0)) });
   }
+
   const subtotalCents = secciones.reduce((s, sec) => s + sec.partidas.reduce((t, p) => t + p.importeCents, 0), 0);
   const ivaPct = tarifas.config.ivaPct;
   const ivaCents = Math.round((subtotalCents * ivaPct) / 100);
@@ -470,12 +533,14 @@ function calcularPresupuesto(solicitud, tarifas) {
     (p, e) => ({ minSemanas: p.minSemanas + tarifas.plazos[e.tipo].min, maxSemanas: p.maxSemanas + tarifas.plazos[e.tipo].max }),
     { minSemanas: 0, maxSemanas: 0 },
   );
+
   return { secciones, subtotalCents, ivaPct, ivaCents, totalCents: subtotalCents + ivaCents, plazo };
 }
 
 return { validarSolicitud, calcularPresupuesto };
 })();
 const __hoja = (() => {
+
 
 const { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS } = __catalogo;
 const { TARIFAS_RESPALDO } = __tarifas;
@@ -487,13 +552,16 @@ function parseNumeroES(v) {
   const tienePunto = s.includes('.');
   const tieneComa = s.includes(',');
   if (tienePunto && tieneComa) {
+
     s = /^-?\d{1,3}(\.\d{3})*,\d+$/.test(s) ? s.replace(/\./g, '').replace(',', '.') : 'x';
   } else if (tieneComa) {
+
     s = /^-?\d{1,3}(,\d{3})+$/.test(s) || s.match(/,/g).length > 1 ? 'x' : s.replace(',', '.');
   }
   else if (tienePunto && /^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
   return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
 }
+
 function pestanasDesde(valueRanges) {
   const out = {};
   for (const vr of valueRanges) {
@@ -506,6 +574,8 @@ function pestanasDesde(valueRanges) {
   }
   return out;
 }
+
+
 function normalizarTarifas(valueRanges) {
   const errores = [];
   if (!Array.isArray(valueRanges)) return { ok: false, tarifas: null, errores: ['respuesta de Sheets no válida'] };
@@ -514,11 +584,14 @@ function normalizarTarifas(valueRanges) {
     if (!p[nombre]) errores.push(`falta la pestaña ${nombre}`);
   }
   if (errores.length) return { ok: false, tarifas: null, errores };
+
   const positivo = (valor, donde) => {
     const n = parseNumeroES(valor);
     if (!(n > 0)) errores.push(`${donde}: "${valor}" no es un número válido`);
     return n;
   };
+
+
   const precio = (valor, referencia, donde) => {
     const n = positivo(valor, donde);
     if (n > 0 && (n < referencia / 5 || n > referencia * 5)) errores.push(`${donde}: ${n} se aleja demasiado del precio de referencia (${referencia})`);
@@ -532,6 +605,7 @@ function normalizarTarifas(valueRanges) {
     }
     return out;
   };
+
   const filasTarifas = porClave(p.Tarifas, 'estancia', 'Tarifas');
   const estancias = {};
   for (const e of ESTANCIAS) {
@@ -539,6 +613,7 @@ function normalizarTarifas(valueRanges) {
     if (!f) { errores.push(`Tarifas: falta ${e}`); continue; }
     estancias[e] = Object.fromEntries(CALIDADES.map((c) => [c, precio(f[c], TARIFAS_RESPALDO.estancias[e][c], `Tarifas ${e}/${c}`)]));
   }
+
   const filasExtras = porClave(p.Extras, 'codigo', 'Extras');
   const extras = {};
   for (const codigo of [...EXTRAS_ESTANCIA, ...EXTRAS_GENERALES]) {
@@ -547,11 +622,13 @@ function normalizarTarifas(valueRanges) {
     const ambitoEsperado = EXTRAS_GENERALES.includes(codigo) ? 'general' : 'estancia';
     if (!['m2', 'fijo'].includes(f.tipo)) errores.push(`Extras ${codigo}: tipo "${f.tipo}" no válido`);
     if (f.ambito !== ambitoEsperado) errores.push(`Extras ${codigo}: ámbito debe ser ${ambitoEsperado}`);
+
     if (ambitoEsperado === 'general' && f.tipo !== 'fijo') errores.push(`Extras ${codigo}: un extra general debe ser fijo`);
     const descripcion = { es: f.descripcion_es, ca: f.descripcion_ca, en: f.descripcion_en };
     if (!descripcion.es || !descripcion.ca || !descripcion.en) errores.push(`Extras ${codigo}: falta descripción`);
     extras[codigo] = { tipo: f.tipo, precio: precio(f.precio, TARIFAS_RESPALDO.extras[codigo].precio, `Extras ${codigo}`), ambito: f.ambito, descripcion };
   }
+
   const filasPlazos = porClave(p.Plazos, 'estancia', 'Plazos');
   const plazos = {};
   for (const e of ESTANCIAS) {
@@ -563,6 +640,7 @@ function normalizarTarifas(valueRanges) {
     if (!Number.isInteger(min) || !Number.isInteger(max)) errores.push(`Plazos ${e}: deben ser semanas enteras`);
     plazos[e] = { min, max };
   }
+
   const filasQue = porClave(p.QueIncluye, 'calidad', 'QueIncluye');
   const queIncluye = {};
   for (const c of CALIDADES) {
@@ -570,6 +648,7 @@ function normalizarTarifas(valueRanges) {
     if (!f || !f.es || !f.ca || !f.en) { errores.push(`QueIncluye: falta ${c}`); continue; }
     queIncluye[c] = { es: f.es, ca: f.ca, en: f.en };
   }
+
   const condiciones = p.Condiciones
     .slice()
     .sort((a, b) => parseNumeroES(a.orden) - parseNumeroES(b.orden))
@@ -579,10 +658,13 @@ function normalizarTarifas(valueRanges) {
     }));
   if (!condiciones.length) errores.push('Condiciones: vacía');
   if (condiciones.some((c) => IDIOMAS.some((i) => !c.titulo[i] || !c.detalle[i]))) errores.push('Condiciones: falta algún texto');
+
   const cfg = porClave(p.Config, 'clave', 'Config');
   const ivaPct = parseNumeroES(cfg.iva_pct && cfg.iva_pct.valor);
+
   if (!(ivaPct >= 1 && ivaPct <= 50)) errores.push('Config: iva_pct debe ser un porcentaje entre 1 y 50 (p. ej. 21)');
   const validezDias = positivo(cfg.validez_dias && cfg.validez_dias.valor, 'Config validez_dias');
+
   if (errores.length) return { ok: false, tarifas: null, errores };
   return { ok: true, tarifas: { estancias, extras, plazos, queIncluye, condiciones, config: { ivaPct, validezDias } }, errores: [] };
 }
@@ -591,10 +673,14 @@ return { parseNumeroES, normalizarTarifas };
 })();
 const __numeracion = (() => {
 
+
+
 function siguienteNumero(filasSolicitudes, anio, solicitudId) {
   const filas = Array.isArray(filasSolicitudes) ? filasSolicitudes : [];
   const i = filas.findIndex((f) => Array.isArray(f) && f[1] && f[1] === solicitudId);
   if (i !== -1) {
+
+
     const n = String(filas[i][0] ?? '');
     return { numero: /^P-\d{4}-\d{4,}$/.test(n) ? n : `P-${anio}-${String(i + 1).padStart(4, '0')}`, existente: true };
   }
@@ -605,6 +691,8 @@ function siguienteNumero(filasSolicitudes, anio, solicitudId) {
   }, 0);
   return { numero: `P-${anio}-${String(max + 1).padStart(4, '0')}`, existente: false };
 }
+
+
 function numeroDesdeFila(updatedRange, anio) {
   const m = /!\$?[A-Z]+\$?(\d+)/.exec(String(updatedRange ?? ''));
   if (!m || Number(m[1]) < 2) return null;
@@ -615,15 +703,23 @@ return { siguienteNumero, numeroDesdeFila };
 })();
 const __prompt = (() => {
 
+
+
+
 const { ETIQUETAS } = __etiquetas;
 const { formatM2 } = __formato;
 const { EXTRAS_ESTANCIA, ESTANCIAS, CALIDADES } = __catalogo;
 const NOMBRE_IDIOMA = { es: 'español', ca: 'catalán', en: 'inglés' };
+
 const limpiarDato = (t) => String(t ?? '').replace(/<<<|>>>/g, '').replace(/DATOS_CLIENTE/gi, '');
+
 const EJEMPLO = `SOLICITUD DE EJEMPLO: baño de 6 m², calidad media, con demolición y fontanería nueva. El cliente escribió:
 "Quiero cambiar la bañera por un plato de ducha grande y poner un mueble con dos lavabos. El baño tiene unos 30 años y las tuberías son las originales."
+
 RESPUESTA DE EJEMPLO:
 {"saludo":"Hola Marta:","resumen":"Muchas gracias por contactar con Reformas Barcelona. Te enviamos el presupuesto para reformar tu baño de unos 6 m². Como nos contaste, cambiaremos la bañera por un plato de ducha amplio y pondremos un mueble con dos lavabos. Además, al ser un baño de unos 30 años con las tuberías originales, incluimos la renovación completa de la fontanería para evitar problemas en el futuro.","trabajos":["Retirada de la bañera, los sanitarios y el revestimiento actual, y transporte de los escombros al punto limpio.","Renovación completa de las tuberías de agua y de los desagües del baño.","Plato de ducha extraplano de 140 × 80 cm con mampara de vidrio templado.","Mueble suspendido con dos lavabos integrados y espejo.","Revestimiento de paredes y suelo en gres porcelánico (calidad media), a elegir entre nuestro muestrario.","Grifería termostática en la ducha e iluminación LED en el techo.","Limpieza final de la obra."],"cierre":"Si tienes cualquier duda o quieres ajustar algo, estaremos encantados de ayudarte."}`;
+
+
 function construirPromptRedaccion({ solicitud, tarifas }) {
   const E = ETIQUETAS.es;
   const estancias = solicitud.estancias.map((e, i) => {
@@ -633,13 +729,17 @@ function construirPromptRedaccion({ solicitud, tarifas }) {
     return `- Estancia ${i + 1}: ${E.estanciaMin[e.tipo]} de unos ${formatM2(e.m2)} m², calidad ${E.calidad[e.calidad]}.\n` +
       `  La calidad ${E.calidad[e.calidad]} incluye: ${tarifas.queIncluye[e.calidad].es}\n  Extras elegidos:\n${extras}`;
   }).join('\n');
+
   const notasFoto = solicitud.estancias
     .map((e, i) => (e.notaFoto ? `- Estancia ${i + 1}: ${limpiarDato(e.notaFoto)}` : null))
     .filter(Boolean).join('\n');
   const generales = (solicitud.extrasGenerales || []).map((x) => `- ${E.extra[x]}: ${tarifas.extras[x].descripcion.es}`).join('\n');
+
   return `Eres el redactor de presupuestos de Reformas Barcelona, una empresa de reformas con casi 30 años de oficio y 25 personas.
 Tono: cercano y profesional, tratando al cliente de tú. Firmará Jordi Ferrer, el gerente (no añadas firma).
+
 TU TAREA: redactar los textos de un presupuesto. Los importes, el plazo y las condiciones los pone el sistema: tú NO.
+
 REGLAS (obligatorias):
 1. Escribe TODO en ${NOMBRE_IDIOMA[solicitud.idioma]}.
 2. PROHIBIDO mencionar precios, importes, cifras de dinero, monedas, descuentos, regalos, porcentajes, IVA o plazos.
@@ -654,7 +754,9 @@ REGLAS (obligatorias):
    - resumen: 2-4 frases personalizadas según lo que ha contado el cliente.
    - trabajos: frases cortas y concretas; la última, la limpieza final de la obra.
    - cierre: una frase amable ofreciendo ayuda.
+
 ${EJEMPLO}
+
 SOLICITUD REAL:
 ${estancias}
 ${generales ? `Gestiones de la obra:\n${generales}\n` : ''}Datos del cliente (nombre, su mensaje y lo que se ve en sus fotos):
@@ -662,13 +764,17 @@ ${generales ? `Gestiones de la obra:\n${generales}\n` : ''}Datos del cliente (no
 Nombre: ${limpiarDato(solicitud.cliente.nombre)}
 Mensaje: ${limpiarDato(solicitud.descripcion) || '(no ha escrito nada)'}
 ${notasFoto ? `Observaciones de sus fotos:\n${notasFoto}\n` : ''}DATOS_CLIENTE>>>
+
 Responde solo con el JSON, en ${NOMBRE_IDIOMA[solicitud.idioma]}.`;
 }
+
+
 function construirPromptFoto({ estancia, idioma }) {
   const E = ETIQUETAS.es;
   const extras = EXTRAS_ESTANCIA.map((x) => `- "${x}": ${E.extra[x]}`).join('\n');
   return `Eres el técnico de Reformas Barcelona. Analiza la foto que un cliente ha subido de la estancia que quiere reformar.
 El cliente dice que es: ${E.estanciaMin[estancia.tipo]}, con calidad ${E.calidad[estancia.calidad]}.
+
 Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma exacta:
 {
   "esEstancia": boolean,                // false si la foto no muestra una estancia de una vivienda
@@ -680,8 +786,10 @@ Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma ex
   "confianza": número entre 0 y 1,
   "notaTecnica": frase para el técnico sobre algo a revisar en la visita (humedades, grietas, instalación antigua…) o null
 }
+
 Códigos de extras permitidos (usa SOLO estos y solo si la foto lo justifica):
 ${extras}
+
 Reglas: no menciones precios ni dinero. Escribe "elementos", "motivo" y "notaTecnica" en ${NOMBRE_IDIOMA[idioma]}.
 Si no estás seguro, baja la confianza en lugar de inventar.`;
 }

@@ -24,3 +24,6 @@ Thumbs.db
 
 # Build de la web
 /dist/
+
+# Código generado de los nodos (se reconstruye con node n8n/build.mjs)
+/n8n/generated/

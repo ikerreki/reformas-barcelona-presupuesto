@@ -51,11 +51,16 @@ return [{
 // ===== Motor de Reformas Barcelona (generado por n8n/build.mjs desde engine/; no editar aquí) =====
 const __catalogo = (() => {
 
+
+
 const ESTANCIAS = ['bano', 'cocina', 'salon', 'dormitorio', 'vivienda'];
 const CALIDADES = ['basica', 'media', 'alta'];
+
 const EXTRAS_ESTANCIA = ['demolicion', 'fontaneria', 'electricidad', 'pintura', 'suelo_radiante', 'aire'];
+
 const EXTRAS_GENERALES = ['licencia'];
 const IDIOMAS = ['es', 'ca', 'en'];
+
 const LIMITES = {
   maxEstancias: 6,
   m2Max: 500,
@@ -66,6 +71,7 @@ const LIMITES = {
   descripcionMax: 1000,
   notaFotoMax: 300,
 };
+
 const EMPRESA = {
   nombre: 'Reformas Barcelona',
   razonSocial: 'Reformas Barcelona, S.L. (empresa ficticia)',
@@ -83,6 +89,8 @@ return { ESTANCIAS, CALIDADES, EXTRAS_ESTANCIA, EXTRAS_GENERALES, IDIOMAS, LIMIT
 })();
 const __formato = (() => {
 
+
+
 function formatEUR(cents) {
   const negativo = cents < 0;
   const abs = Math.abs(Math.round(cents));
@@ -91,12 +99,17 @@ function formatEUR(cents) {
   const miles = String(euros).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `${negativo ? '-' : ''}${miles}${resto ? ',' + String(resto).padStart(2, '0') : ''} €`;
 }
+
+
 const formatM2 = (n) => String(n).replace('.', ',');
+
 const MESES = {
   es: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
   ca: ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'],
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 };
+
+
 function formatFecha(iso, idioma) {
   const [a, m, d] = iso.split('-').map(Number);
   const mes = MESES[idioma][m - 1];
@@ -104,15 +117,22 @@ function formatFecha(iso, idioma) {
   if (idioma === 'ca') return `${d} ${/^[aeiou]/i.test(mes) ? "d'" : 'de '}${mes} de ${a}`;
   return `${d} de ${mes} de ${a}`;
 }
+
+
 function sumarDias(iso, dias) {
   const f = new Date(`${iso}T00:00:00Z`);
   f.setUTCDate(f.getUTCDate() + dias);
   return f.toISOString().slice(0, 10);
 }
+
+
 function hoyEnMadrid(ahora = new Date()) {
   return ahora.toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
 }
+
 const SEMANAS = { es: 'semanas', ca: 'setmanes', en: 'weeks' };
+
+
 function formatPlazo({ minSemanas, maxSemanas }, idioma) {
   const rango = minSemanas === maxSemanas ? `${minSemanas}` : `${minSemanas}–${maxSemanas}`;
   return `${rango} ${SEMANAS[idioma]}`;
@@ -121,6 +141,8 @@ function formatPlazo({ minSemanas, maxSemanas }, idioma) {
 return { formatEUR, formatM2, formatFecha, sumarDias, hoyEnMadrid, formatPlazo };
 })();
 const __etiquetas = (() => {
+
+
 
 const ETIQUETAS = {
   es: {
@@ -208,11 +230,15 @@ const ETIQUETAS = {
     },
   },
 };
+
+
 function conceptoPartida(partida, seccion, idioma) {
   const E = ETIQUETAS[idioma];
   if (partida.codigo === 'estancia') return E.concepto(E.estanciaMin[seccion.tipo], E.calidad[seccion.calidad]);
   return E.extra[partida.codigo];
 }
+
+
 function listaEstancias(tipos, idioma) {
   const E = ETIQUETAS[idioma];
   const nombres = tipos.map((t) => E.estanciaMin[t]);
@@ -224,14 +250,17 @@ return { ETIQUETAS, conceptoPartida, listaEstancias };
 })();
 const __plantilla = (() => {
 
+
 const { ETIQUETAS, listaEstancias } = __etiquetas;
 const { formatM2 } = __formato;
 const nombrePila = (nombre) => nombre.trim().split(/\s+/)[0];
+
 const POSESIVO_CA = { bano: 'el teu bany', cocina: 'la teva cuina', salon: 'el teu saló/menjador', dormitorio: 'el teu dormitori', vivienda: 'el teu habitatge' };
 function listaCatalana(tipos) {
   const n = tipos.map((t) => POSESIVO_CA[t]);
   return n.length <= 1 ? n.join('') : `${n.slice(0, -1).join(', ')} i ${n[n.length - 1]}`;
 }
+
 const T = {
   es: {
     saludo: (n) => `Hola ${n}:`,
@@ -270,10 +299,13 @@ const T = {
     cierre: "If you have any questions or would like to adjust anything, just write or call us. We'll be happy to help.",
   },
 };
+
+
 function textosPlantilla({ solicitud, tarifas }) {
   const idioma = solicitud.idioma;
   const t = T[idioma];
   const E = ETIQUETAS[idioma];
+
   const trabajos = solicitud.estancias.map((e) => {
     let linea = t.estancia(E.estancia[e.tipo], formatM2(e.m2), E.calidad[e.calidad], tarifas.queIncluye[e.calidad][idioma]);
     if (e.extras.length) linea += ` ${t.incluyeExtras}: ${e.extras.map((x) => E.extra[x].toLowerCase()).join(', ')}.`;
@@ -281,6 +313,7 @@ function textosPlantilla({ solicitud, tarifas }) {
   });
   for (const x of solicitud.extrasGenerales || []) trabajos.push(tarifas.extras[x].descripcion[idioma]);
   trabajos.push(t.visita, t.limpieza);
+
   return {
     saludo: t.saludo(nombrePila(solicitud.cliente.nombre)),
     resumen: t.resumen(idioma === 'ca'
@@ -295,12 +328,15 @@ return { textosPlantilla };
 })();
 const __render = (() => {
 
+
 const { EMPRESA } = __catalogo;
 const { ETIQUETAS, conceptoPartida, listaEstancias } = __etiquetas;
 const { formatEUR, formatFecha, formatPlazo, formatM2, sumarDias } = __formato;
 const C = { terracota: '#C4552D', antracita: '#2A2A2A', crema: '#F6F1EA', gris: '#6B6B6B', linea: '#E4DDD3' };
 const euros = (cents) => Math.round(cents) / 100;
 const eur = (e) => formatEUR(Math.round(e * 100));
+
+
 function montarPresupuesto({ solicitud, calculo, textos, numero, fechaISO, tarifas }) {
   const idioma = solicitud.idioma;
   return {
@@ -328,14 +364,18 @@ function montarPresupuesto({ solicitud, calculo, textos, numero, fechaISO, tarif
     condiciones: tarifas.condiciones.map((c) => ({ titulo: c.titulo[idioma], detalle: c.detalle[idioma] })),
   };
 }
+
 function escaparHTML(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 const h = escaparHTML;
+
 const tiposEstancia = (p) => p.secciones.filter((s) => s.tipo !== 'general').map((s) => s.tipo);
 const tituloSeccion = (s, E) => (s.tipo === 'general' ? E.doc.general : `${E.estancia[s.tipo]} · ${formatM2(s.m2)} m²`);
+
+
 const CSS_DOCUMENTO = `
 .presupuesto{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;color:${C.antracita};background:#fff;
   max-width:800px;margin:0 auto;padding:40px 44px;font-size:14px;line-height:1.55;box-sizing:border-box}
@@ -372,6 +412,8 @@ const CSS_DOCUMENTO = `
   .presupuesto .partidas .pu{display:none}.presupuesto h1{font-size:20px}
   .presupuesto .totales{min-width:0;width:100%}}
 `;
+
+
 function htmlDocumento(p) {
   const E = ETIQUETAS[p.idioma];
   const D = E.doc;
@@ -382,12 +424,15 @@ function htmlDocumento(p) {
       `<td class="n">${h(formatM2(pt.cantidad))} ${h(E.unidad[pt.unidad])}</td>` +
       `<td class="n pu">${eur(pt.precioUnitario)}</td><td class="n">${eur(pt.importe)}</td></tr>`).join('');
   }).join('');
+
   const datos = [[D.cliente, p.cliente.nombre], [D.email, p.cliente.email],
     [D.telefono, p.cliente.telefono], [D.direccion, p.cliente.direccion]]
     .filter(([, v]) => v).map(([k, v]) => `<tr><td>${h(k)}</td><td>${h(v)}</td></tr>`).join('');
+
   const marca = p.logoUrl
     ? `<img src="${h(p.logoUrl)}" alt="${h(EMPRESA.nombre)}">`
     : `<div class="marca">${h(EMPRESA.nombre.toUpperCase())}</div>`;
+
   return `<article class="presupuesto" lang="${h(p.idioma)}"><style>${CSS_DOCUMENTO}</style>
 <header class="cab">${marca}<div class="empresa">${h(EMPRESA.razonSocial)}<br>${h(EMPRESA.direccion)}<br>${h(EMPRESA.telefono)} · ${h(EMPRESA.email)}<br>${h(EMPRESA.web)}</div></header>
 <h1>${h(D.titulo(listaEstancias(tiposEstancia(p), p.idioma)))}</h1>
@@ -412,22 +457,29 @@ function htmlDocumento(p) {
 <footer class="pie">${h(EMPRESA.razonSocial)} · ${h(EMPRESA.direccion)} · ${h(EMPRESA.telefono)}</footer>
 </article>`;
 }
+
+
 function htmlPaginaPDF(p) {
   return `<!doctype html><html lang="${h(p.idioma)}"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>body{margin:0;background:#fff}</style></head><body>${htmlDocumento(p)}</body></html>`;
 }
+
+
 const ASUNTO = {
   es: (n) => `Tu presupuesto ${n} · Reformas Barcelona`,
   ca: (n) => `El teu pressupost ${n} · Reformas Barcelona`,
   en: (n) => `Your quote ${n} · Reformas Barcelona`,
 };
 const asuntoEmail = (p) => ASUNTO[p.idioma](p.numero);
+
 const ADJUNTO = {
   es: 'Te adjuntamos también el presupuesto en PDF.',
   ca: 'També t’adjuntem el pressupost en PDF.',
   en: 'The quote is also attached as a PDF.',
 };
+
+
 function htmlEmail(p, { conAdjunto = true } = {}) {
   const E = ETIQUETAS[p.idioma];
   const D = E.doc;
@@ -445,6 +497,7 @@ function htmlEmail(p, { conAdjunto = true } = {}) {
   const marca = p.logoUrl
     ? `<img src="${h(p.logoUrl)}" alt="${h(EMPRESA.nombre)}" height="40" style="display:block;height:40px;border:0">`
     : `<span style="${F};font-size:18px;font-weight:800;letter-spacing:1px;color:${C.antracita}">${h(EMPRESA.nombre.toUpperCase())}</span>`;
+
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.crema};padding:24px 0"><tr><td align="center">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:10px">
 <tr><td style="padding:24px 28px;border-bottom:3px solid ${C.terracota}">${marca}</td></tr>
@@ -471,17 +524,23 @@ ${total(h(D.total), eur(p.total), `color:${C.terracota};font-weight:800;font-siz
 ${h(EMPRESA.razonSocial)} · ${h(EMPRESA.direccion)} · ${h(EMPRESA.telefono)}</td></tr>
 </table></td></tr></table>`;
 }
+
+
+
 function resumenJordi({ presupuesto: p, avisos = {}, descripcion = '' }) {
   const E = ETIQUETAS.es;
   const estancias = tiposEstancia(p).map((t) => E.estancia[t]).join(' + ');
   const asunto = `Nueva solicitud · ${estancias} · ${eur(p.total)} · ${p.cliente.nombre}`;
+
   const lista = [];
   if (avisos.origenTarifas === 'respaldo') lista.push('Se usaron las tarifas de respaldo porque la hoja de Google no se pudo leer: revisa que los precios estén al día.');
   if (avisos.textoPlantilla) lista.push('El texto se generó con la plantilla porque la IA no respondió correctamente.');
   if (avisos.numeroProvisional) lista.push(`El número ${p.numero} es provisional (no se pudo leer la hoja): asígnale uno definitivo.`);
   const notas = (avisos.notasFoto || []).filter(Boolean);
+
   const fila = (k, v) => `<tr><td style="padding:3px 16px 3px 0;font-weight:700">${h(k)}</td><td>${h(v)}</td></tr>`;
   const resumenPartidas = p.secciones.map((s) => `<li>${h(tituloSeccion(s, E))}: ${s.partidas.map((pt) => h(conceptoPartida(pt, s, 'es'))).join(', ')}</li>`).join('');
+
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;color:${C.antracita};font-size:14px;line-height:1.5">
 <h2 style="color:${C.terracota};margin:0 0 12px">Nueva solicitud ${h(p.numero)}</h2>
 ${lista.length ? `<div style="background:#FCEBEB;border:1px solid #E24B4A;padding:10px 14px;margin-bottom:14px"><strong style="color:#A32D2D">Avisos</strong><ul style="margin:6px 0 0;padding-left:18px">${lista.map((a) => `<li style="color:#A32D2D">${h(a)}</li>`).join('')}</ul></div>` : ''}
