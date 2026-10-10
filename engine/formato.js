@@ -38,6 +38,11 @@ export function sumarDias(iso, dias) {
   return f.toISOString().slice(0, 10);
 }
 
+/** Fecha de hoy (AAAA-MM-DD) en Barcelona, sea cual sea la zona horaria del servidor de n8n. */
+export function hoyEnMadrid(ahora = new Date()) {
+  return ahora.toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+}
+
 const SEMANAS = { es: 'semanas', ca: 'setmanes', en: 'weeks' };
 
 /** { minSemanas: 2, maxSemanas: 3 } → "2–3 semanas". */
