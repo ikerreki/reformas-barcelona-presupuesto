@@ -9,3 +9,12 @@ node_modules/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Documentos originales recibidos de NU Automatiza: se quedan en local.
+# (Los logos que necesita la web se copian a web/assets/.)
+reformas-barcelona-datos.xlsx
+reformas-barcelona-presupuesto-ejemplo.pdf
+reformas-barcelona-logo.png
+reformas-barcelona-logo.svg
+reformas-barcelona-logo-blanco.png
+reformas-barcelona-logo-blanco.svg
