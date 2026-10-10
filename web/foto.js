@@ -5,6 +5,7 @@ import { UI } from './i18n.js';
 import { ETIQUETAS } from './engine/etiquetas.js';
 import { formatEUR } from './engine/formato.js';
 import { escaparHTML as h } from './engine/render.js';
+import { tipoSugerido } from './engine/foto.js';
 import { estado, pintarEstancias } from './form.js';
 
 const LADO_MAX = 1024;
@@ -66,6 +67,8 @@ function htmlZona(e, i) {
     const vemos = [a.estado ? t.estado[a.estado] : '', ...a.elementos].filter(Boolean).join(' · ');
     const otra = a.estanciaDetectada && e.tipo && a.estanciaDetectada !== e.tipo
       ? `<p class="foto__aviso">${h(t.otraEstancia(E.estanciaMin[a.estanciaDetectada], E.estanciaMin[e.tipo]))}</p>` : '';
+    const detectada = f.tipoDetectado && e.tipo === a.estanciaDetectada
+      ? `<p class="foto__detectada">${h(t.detectada(E.estanciaMin[e.tipo]))}</p>` : '';
     const dudosa = a.confianza < 0.6 ? `<p class="foto__aviso">${h(t.pocaConfianza)}</p>` : '';
     const pendientes = a.extrasSugeridos.filter((s) => !e.extras.includes(s.extra));
     const lista = a.extrasSugeridos.length
@@ -79,7 +82,7 @@ function htmlZona(e, i) {
     const est = f.estimacion && f.estimacion.total != null
       ? `<p class="foto__estimacion">${h(t.estimacion(formatEUR(Math.round(f.estimacion.total * 100))))}<small>${h(t.orientativo)}</small></p>`
       : `<p class="ayuda">${h(t.sinM2)}</p>`;
-    cuerpo = `${otra}<p class="foto__vemos"><strong>${h(t.vemos)}:</strong> ${h(vemos)}</p>${dudosa}
+    cuerpo = `${detectada}${otra}<p class="foto__vemos"><strong>${h(t.vemos)}:</strong> ${h(vemos)}</p>${dudosa}
       <p class="foto__titulo">${h(t.sugerimos)}</p>${lista}${est}`;
   }
   return `<div class="foto__fila"><img class="foto__miniatura" src="${f.preview}" alt=""><div class="foto__cuerpo" aria-live="polite">${cuerpo}</div></div>${boton}`;
@@ -102,9 +105,12 @@ async function alElegirFoto(i, file) {
   const r = await analizarFoto(e, imagen, estado.idioma);
   if (!estado.estancias.includes(e)) return; // la estancia se quitó mientras tanto
   e.foto = r.ok ? { preview: imagen.preview, analisis: r.analisis, estimacion: r.estimacion } : { preview: imagen.preview, error: true };
+  // Foto subida antes de elegir la estancia: marcamos la que ha reconocido la IA (el cliente puede cambiarla).
+  const tipo = r.ok ? tipoSugerido(e.tipo, r.analisis) : null;
+  if (tipo) { e.tipo = tipo; e.foto.tipoDetectado = true; }
   // La nota técnica viaja con la solicitud para Jordi (solo si de verdad es una estancia).
   e.notaFoto = r.ok && r.analisis.esEstancia ? r.analisis.notaTecnica : null;
-  pintarFotos();
+  if (tipo) pintarEstancias(); else pintarFotos();
 }
 
 export function iniciarFotos() {

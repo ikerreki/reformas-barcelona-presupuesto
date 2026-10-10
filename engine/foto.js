@@ -14,14 +14,16 @@ export function validarEntradaFoto(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return no('formato');
   if (!IDIOMAS.includes(raw.idioma)) return no('idioma');
   const e = raw.estancia || {};
-  if (!ESTANCIAS.includes(e.tipo)) return no('estancia');
+  // Si el cliente sube la foto antes de elegir la estancia, se analiza igual: la IA la reconoce.
+  const tipo = e.tipo === undefined || e.tipo === null || e.tipo === '' ? null : e.tipo;
+  if (tipo !== null && !ESTANCIAS.includes(tipo)) return no('estancia');
   const calidad = CALIDADES.includes(e.calidad) ? e.calidad : 'media';
   const img = raw.imagen || {};
   if (!MIMES.includes(img.mime)) return no('tipo de imagen');
   const base64 = String(img.base64 || '').replace(/^data:[^,]*,/, '');
   if (!base64 || base64.length > MAX_BASE64 || !/^[A-Za-z0-9+/]+=*$/.test(base64)) return no('imagen');
   const extras = Array.isArray(e.extras) ? e.extras.filter((x) => EXTRAS_ESTANCIA.includes(x)) : [];
-  return { ok: true, idioma: raw.idioma, estancia: { tipo: e.tipo, m2: e.m2, calidad, extras }, imagen: { mime: img.mime, base64 } };
+  return { ok: true, idioma: raw.idioma, estancia: { tipo, m2: e.m2, calidad, extras }, imagen: { mime: img.mime, base64 } };
 }
 const enLista = (v, lista) => (lista.includes(v) ? v : null);
 const textoCorto = (v, max) => (typeof v === 'string' ? v.replace(/[\s\p{Cc}]+/gu, ' ').trim().slice(0, max) : '');
@@ -54,13 +56,25 @@ export function validarAnalisisFoto(raw) {
   };
 }
 
+const CONFIANZA_MIN = 0.6;
+
+/**
+ * Estancia que la web marca sola tras analizar la foto: solo si el cliente aún no había elegido ninguna
+ * y la IA la reconoce con confianza. Nunca cambia lo que eligió el cliente.
+ */
+export function tipoSugerido(tipoActual, analisis) {
+  if (tipoActual || !analisis || !analisis.esEstancia || !(analisis.confianza >= CONFIANZA_MIN)) return null;
+  return ESTANCIAS.includes(analisis.estanciaDetectada) ? analisis.estanciaDetectada : null;
+}
+
 /** Precio orientativo (con IVA) de la estancia del cliente + los extras sugeridos por la foto. */
 export function estimarConFoto({ estancia, analisis, tarifas }) {
   const sugeridos = (analisis && analisis.extrasSugeridos || []).map((x) => x.extra);
   const extras = EXTRAS_ESTANCIA.filter((x) => (estancia.extras || []).includes(x) || sugeridos.includes(x));
+  const tipo = estancia.tipo || tipoSugerido('', analisis);
   const m2 = Number(String(estancia.m2).replace(',', '.'));
-  const valida = ESTANCIAS.includes(estancia.tipo) && CALIDADES.includes(estancia.calidad) && m2 > 0;
+  const valida = ESTANCIAS.includes(tipo) && CALIDADES.includes(estancia.calidad) && m2 > 0;
   if (!valida) return { extras, total: null, plazo: null };
-  const c = calcularPresupuesto({ estancias: [{ tipo: estancia.tipo, m2, calidad: estancia.calidad, extras }], extrasGenerales: [] }, tarifas);
+  const c = calcularPresupuesto({ estancias: [{ tipo, m2, calidad: estancia.calidad, extras }], extrasGenerales: [] }, tarifas);
   return { extras, total: c.totalCents / 100, plazo: c.plazo };
 }

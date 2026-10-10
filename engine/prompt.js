@@ -73,7 +73,9 @@ export function construirPromptFoto({ estancia, idioma }) {
   const E = ETIQUETAS.es;
   const extras = EXTRAS_ESTANCIA.map((x) => `- "${x}": ${E.extra[x]}`).join('\n');
   return `Eres el técnico de Reformas Barcelona. Analiza la foto que un cliente ha subido de la estancia que quiere reformar.
-El cliente dice que es: ${E.estanciaMin[estancia.tipo]}, con calidad ${E.calidad[estancia.calidad]}.
+${estancia.tipo
+    ? `El cliente dice que es: ${E.estanciaMin[estancia.tipo]}, con calidad ${E.calidad[estancia.calidad]}.`
+    : `El cliente todavía no ha dicho qué estancia es: identifícala tú en "estanciaDetectada". Calidad elegida: ${E.calidad[estancia.calidad]}.`}
 
 Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma exacta:
 {

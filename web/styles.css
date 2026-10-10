@@ -192,6 +192,7 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, .stepper:focu
 .foto__cuerpo { flex: 1; min-width: 0; font-size: 14.5px; }
 .foto__cuerpo p { margin: 0 0 8px; }
 .foto__estado { font-weight: 700; color: var(--terracota-osc); }
+.foto__detectada { background: #EEF6EC; border: 1px solid #B9D8B1; border-radius: 8px; padding: 8px 10px; color: #2F5A27; }
 .foto__aviso { background: #FFF6E5; border: 1px solid #F0D49A; border-radius: 8px; padding: 8px 10px; color: #6B4A00; }
 .foto__titulo { font-weight: 700; }
 .foto__sugerencias { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }

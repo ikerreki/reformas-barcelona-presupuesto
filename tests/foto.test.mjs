@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarAnalisisFoto, estimarConFoto, validarEntradaFoto } from '../engine/foto.js';
+import { validarAnalisisFoto, estimarConFoto, validarEntradaFoto, tipoSugerido } from '../engine/foto.js';
+import { construirPromptFoto } from '../engine/prompt.js';
 import { TARIFAS_RESPALDO } from '../engine/tarifas.js';
 
 const analisisBueno = () => ({
@@ -129,4 +130,35 @@ test('entrada de foto: acepta un data URL y se queda solo con el base64', () => 
   const r = validarEntradaFoto(entrada({ imagen: { mime: 'image/jpeg', base64: 'data:image/jpeg;base64,/9j/4AAQ' } }));
   assert.equal(r.ok, true);
   assert.equal(r.imagen.base64, '/9j/4AAQ');
+});
+
+// ---- Foto subida ANTES de elegir la estancia (caso real en producción, ejecuciones 61 y 62) ----
+test('entrada de foto sin estancia elegida todavía: se analiza igual (tipo null)', () => {
+  const r = validarEntradaFoto(entrada({ estancia: { tipo: '', m2: '', calidad: 'media', extras: [] } }));
+  assert.equal(r.ok, true);
+  assert.equal(r.estancia.tipo, null);
+});
+
+test('prompt de foto sin estancia elegida: pide identificarla y no dice «undefined»', () => {
+  const p = construirPromptFoto({ estancia: { tipo: null, m2: '', calidad: 'media', extras: [] }, idioma: 'es' });
+  assert.ok(!p.includes('undefined'));
+  assert.match(p, /todavía no ha dicho qué estancia es/);
+});
+
+test('sin estancia elegida, la estimación usa la que ha reconocido la foto', () => {
+  const e = estimarConFoto({
+    estancia: { tipo: null, m2: 6, calidad: 'media', extras: [] },
+    analisis: validarAnalisisFoto(analisisBueno()).analisis,
+    tarifas: TARIFAS_RESPALDO,
+  });
+  assert.equal(e.total, 8094.9);
+});
+
+test('tipoSugerido: la web marca la estancia reconocida solo si el cliente no había elegido ninguna', () => {
+  const a = validarAnalisisFoto(analisisBueno()).analisis;
+  assert.equal(tipoSugerido('', a), 'bano');
+  assert.equal(tipoSugerido('cocina', a), null, 'nunca cambia lo que eligió el cliente');
+  assert.equal(tipoSugerido('', { ...a, esEstancia: false }), null);
+  assert.equal(tipoSugerido('', { ...a, estanciaDetectada: null }), null);
+  assert.equal(tipoSugerido('', { ...a, confianza: 0.4 }), null, 'con poca confianza no adivinamos');
 });
