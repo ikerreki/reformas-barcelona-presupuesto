@@ -43,7 +43,7 @@
 | D10 | **Varias estancias permitidas**, incluida «vivienda completa» junto a otras | Decisión de Iker |
 | D11 | **Plazo con varias estancias = suma de rangos** (mín + mín, máx + máx) | El Excel no lo define; opción prudente |
 | D12 | **Extras por estancia**, excepto **licencia de obra: una vez por solicitud** | Excel: «fijo = su precio, una vez»; la licencia es «el permiso de obra». La duda del cuadro eléctrico se documenta (§12) |
-| D13 | Repo **público**; ninguna clave en el código; el PDF del caso de NU **no se publica** (`.gitignore`) | Portfolio sin publicar material ajeno |
+| D13 | Repo **público**; ninguna clave en el código; **ningún documento original recibido de NU se versiona** (PDF del caso, Excel, presupuesto de ejemplo y logos de la raíz, todo en `.gitignore`). Solo se publican los logos copiados a `web/assets/`, porque la web los necesita | Portfolio sin publicar material ajeno |
 
 ---
 
@@ -91,8 +91,8 @@
 │  ├─ puntos-clave-presentacion.md
 │  ├─ informe-aprendizaje.md
 │  └─ slides/                      deck web
-├─ reformas-barcelona-*.{xlsx,pdf,svg,png}   materiales originales
-└─ .gitignore                      excluye caso-practico-nu-automatiza.pdf, .env, node_modules
+├─ reformas-barcelona-*.{xlsx,pdf,svg,png}   materiales originales (solo en local, no versionados)
+└─ .gitignore                      excluye los documentos de NU, .env y node_modules
 ```
 
 ---
