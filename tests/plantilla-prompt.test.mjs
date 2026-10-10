@@ -57,6 +57,11 @@ test('prompt de redacción: la IA no recibe ningún importe', () => {
   for (const prohibido of ['€', '880', '1200', '1.200', '350', '21 %']) assert.ok(!p.includes(prohibido), prohibido);
 });
 
+test('prompt de redacción: el nombre de la empresa no se traduce («Reformes Barcelona» en CA)', () => {
+  const p = construirPromptRedaccion({ solicitud: valida(solicitudMarta({ idioma: 'ca' })), tarifas: TARIFAS_RESPALDO });
+  assert.match(p, /«Reformas Barcelona».*no lo traduzcas/i);
+});
+
 test('prompt de redacción: idioma de salida explícito', () => {
   const p = construirPromptRedaccion({ solicitud: valida(solicitudMarta({ idioma: 'ca' })), tarifas: TARIFAS_RESPALDO });
   assert.match(p, /catalán/i);

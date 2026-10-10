@@ -40,7 +40,7 @@ Tono: cercano y profesional, tratando al cliente de tú. Firmará Jordi Ferrer, 
 TU TAREA: redactar los textos de un presupuesto. Los importes, el plazo y las condiciones los pone el sistema: tú NO.
 
 REGLAS (obligatorias):
-1. Escribe TODO en ${NOMBRE_IDIOMA[solicitud.idioma]}.
+1. Escribe TODO en ${NOMBRE_IDIOMA[solicitud.idioma]}. El nombre de la empresa es siempre «Reformas Barcelona»: no lo traduzcas.
 2. PROHIBIDO mencionar precios, importes, cifras de dinero, monedas, descuentos, regalos, porcentajes, IVA o plazos.
    Tampoco incluyas enlaces, emails ni teléfonos.
 3. Describe solo los trabajos de las estancias, calidades y extras de la lista. Puedes concretarlos con lo que cuenta el cliente
