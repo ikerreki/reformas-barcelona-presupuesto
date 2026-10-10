@@ -4,6 +4,8 @@ Caso práctico para **NU Automatiza**: un cliente rellena un formulario web y re
 de reforma con el formato de la empresa, por pantalla, por email y en PDF. Jordi, el gerente, recibe un aviso y
 la solicitud queda registrada en su hoja de cálculo.
 
+**Demo:** https://reformas-barcelona-presupuesto.vercel.app
+
 > Todos los datos (empresa, tarifas, clientes) son ficticios, tal y como indica el enunciado del caso.
 
 ## Cómo funciona

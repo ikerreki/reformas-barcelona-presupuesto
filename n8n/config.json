@@ -2,12 +2,21 @@
   "spreadsheetId": "1rSOnXhucE3Mp1aYjmgsWE8_hkHCnQfZASz39ocDC4ZE",
   "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/1rSOnXhucE3Mp1aYjmgsWE8_hkHCnQfZASz39ocDC4ZE/edit",
   "emailJordi": "ikerreki544@gmail.com",
-  "logoUrl": "",
+  "logoUrl": "https://reformas-barcelona-presupuesto.vercel.app/assets/reformas-barcelona-logo.png",
   "workflows": {
     "presupuesto": {
       "id": "Te2h9iTjTufEi30U",
       "url": "https://ikerrodriguez.app.n8n.cloud/workflow/Te2h9iTjTufEi30U"
+    },
+    "analizarFoto": {
+      "id": "w92IOoQSP4e0UW1C",
+      "url": "https://ikerrodriguez.app.n8n.cloud/workflow/w92IOoQSP4e0UW1C"
+    },
+    "errores": {
+      "id": "ij6mN6bF48Qy8tQU",
+      "url": "https://ikerrodriguez.app.n8n.cloud/workflow/ij6mN6bF48Qy8tQU"
     }
   },
-  "webhookBase": "https://ikerrodriguez.app.n8n.cloud/webhook"
+  "webhookBase": "https://ikerrodriguez.app.n8n.cloud/webhook",
+  "webUrl": "https://reformas-barcelona-presupuesto.vercel.app"
 }
