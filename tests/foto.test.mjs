@@ -59,9 +59,9 @@ test('textos de la IA acotados y sin importes', () => {
   a.notaTecnica = 'x'.repeat(1000);
   a.extrasSugeridos = [{ extra: 'demolicion', motivo: 'Cuesta unos 300 euros retirar todo' }];
   const r = validarAnalisisFoto(a).analisis;
-  assert.equal(r.elementos.length, 6);
+  assert.equal(r.elementos.es.length, 6);
   assert.ok(r.notaTecnica.length <= 300);
-  assert.equal(r.extrasSugeridos[0].motivo, '');
+  assert.deepEqual(r.extrasSugeridos[0].motivo, { es: '', ca: '', en: '' });
 });
 
 test('entrada basura no rompe', () => {
@@ -161,4 +161,43 @@ test('tipoSugerido: la web marca la estancia reconocida solo si el cliente no ha
   assert.equal(tipoSugerido('', { ...a, esEstancia: false }), null);
   assert.equal(tipoSugerido('', { ...a, estanciaDetectada: null }), null);
   assert.equal(tipoSugerido('', { ...a, confianza: 0.4 }), null, 'con poca confianza no adivinamos');
+});
+
+// ---- Textos de la foto en los tres idiomas: cambiar de idioma en la web no vuelve a analizar ----
+const analisisTrilingue = () => ({
+  ...analisisBueno(),
+  elementos: { es: ['bañera', 'azulejo antiguo'], ca: ['banyera', 'rajola antiga'], en: ['bathtub', 'old tiles'] },
+  extrasSugeridos: [{ extra: 'demolicion', motivo: { es: 'Azulejos antiguos.', ca: 'Rajoles antigues.', en: 'Old tiles.' } }],
+});
+
+test('análisis trilingüe: elementos y motivos en es, ca y en', () => {
+  const a = validarAnalisisFoto(analisisTrilingue()).analisis;
+  assert.deepEqual(a.elementos.ca, ['banyera', 'rajola antiga']);
+  assert.deepEqual(a.elementos.en, ['bathtub', 'old tiles']);
+  assert.deepEqual(a.extrasSugeridos[0].motivo, { es: 'Azulejos antiguos.', ca: 'Rajoles antigues.', en: 'Old tiles.' });
+});
+
+test('si la IA responde en un solo idioma o le falta alguno, se rellena con otro (nunca queda vacío)', () => {
+  const viejo = validarAnalisisFoto(analisisBueno()).analisis; // formato de un solo idioma: array y string
+  assert.deepEqual(viejo.elementos.en, viejo.elementos.es);
+  assert.equal(viejo.extrasSugeridos[0].motivo.ca, viejo.extrasSugeridos[0].motivo.es);
+  const b = analisisTrilingue();
+  delete b.elementos.ca;
+  b.extrasSugeridos[0].motivo.en = '';
+  const v = validarAnalisisFoto(b).analisis;
+  assert.deepEqual(v.elementos.ca, ['bañera', 'azulejo antiguo']);
+  assert.equal(v.extrasSugeridos[0].motivo.en, 'Azulejos antiguos.');
+});
+
+test('un importe en cualquier idioma anula el motivo en los tres', () => {
+  const a = analisisTrilingue();
+  a.extrasSugeridos[0].motivo.en = 'Removing it all costs about 300 euros';
+  assert.deepEqual(validarAnalisisFoto(a).analisis.extrasSugeridos[0].motivo, { es: '', ca: '', en: '' });
+});
+
+test('prompt de foto: pide los textos en es, ca y en, y la nota técnica en español', () => {
+  const p = construirPromptFoto({ estancia: { tipo: 'bano', m2: 6, calidad: 'media', extras: [] }, idioma: 'en' });
+  assert.ok(p.includes('"elementos": { "es": ['));
+  assert.ok(p.includes('"motivo": { "es": '));
+  assert.match(p, /"notaTecnica", siempre en español/);
 });

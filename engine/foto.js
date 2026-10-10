@@ -27,6 +27,17 @@ export function validarEntradaFoto(raw) {
 }
 const enLista = (v, lista) => (lista.includes(v) ? v : null);
 const textoCorto = (v, max) => (typeof v === 'string' ? v.replace(/[\s\p{Cc}]+/gu, ' ').trim().slice(0, max) : '');
+const vacio = (x) => (Array.isArray(x) ? x.length === 0 : !x);
+
+// Un texto de la IA en los tres idiomas de la web ({ es, ca, en }), para cambiar de idioma sin volver a
+// analizar la foto. Si llega en un solo idioma, o falta alguno, se rellena con otro: nunca queda vacío.
+function enTresIdiomas(v, normalizar) {
+  const porIdioma = Object.fromEntries(IDIOMAS.map((i) =>
+    [i, normalizar(v && typeof v === 'object' && !Array.isArray(v) ? v[i] : v)]));
+  const respaldo = IDIOMAS.map((i) => porIdioma[i]).find((x) => !vacio(x)) ?? normalizar(null);
+  return Object.fromEntries(IDIOMAS.map((i) => [i, vacio(porIdioma[i]) ? respaldo : porIdioma[i]]));
+}
+const listaElementos = (x) => (Array.isArray(x) ? x : []).map((e) => textoCorto(e, 60)).filter(Boolean).slice(0, 6);
 
 /** Normaliza el JSON de la IA de visión: nada fuera del catálogo, textos acotados y sin importes. */
 export function validarAnalisisFoto(raw) {
@@ -36,18 +47,20 @@ export function validarAnalisisFoto(raw) {
   const extrasSugeridos = !esEstancia ? [] : (Array.isArray(raw.extrasSugeridos) ? raw.extrasSugeridos : [])
     .filter((x) => x && EXTRAS_ESTANCIA.includes(x.extra) && !vistos.has(x.extra) && vistos.add(x.extra))
     .map((x) => {
-      const motivo = textoCorto(x.motivo, 200);
-      return { extra: x.extra, motivo: contieneImportes(motivo) ? '' : motivo };
+      const motivo = enTresIdiomas(x.motivo, (m) => textoCorto(m, 200));
+      // Un importe en cualquier idioma invalida el motivo entero.
+      return { extra: x.extra, motivo: Object.values(motivo).some(contieneImportes) ? { es: '', ca: '', en: '' } : motivo };
     });
   const confianza = Number(raw.confianza);
-  const nota = textoCorto(raw.notaTecnica, 300);
+  // La nota técnica es para Jordi y el técnico: en español.
+  const nota = textoCorto(raw.notaTecnica && typeof raw.notaTecnica === 'object' ? raw.notaTecnica.es : raw.notaTecnica, 300);
   return {
     ok: true,
     analisis: {
       esEstancia,
       estanciaDetectada: esEstancia ? enLista(raw.estanciaDetectada, ESTANCIAS) : null,
       estado: enLista(raw.estado, ESTADOS),
-      elementos: (Array.isArray(raw.elementos) ? raw.elementos : []).map((e) => textoCorto(e, 60)).filter(Boolean).slice(0, 6),
+      elementos: enTresIdiomas(raw.elementos, listaElementos),
       calidadAparente: enLista(raw.calidadAparente, CALIDADES),
       extrasSugeridos,
       confianza: Number.isFinite(confianza) ? Math.min(1, Math.max(0, confianza)) : 0,

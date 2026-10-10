@@ -68,8 +68,11 @@ ${notasFoto ? `Observaciones de sus fotos:\n${notasFoto}\n` : ''}DATOS_CLIENTE>>
 Responde solo con el JSON, en ${NOMBRE_IDIOMA[solicitud.idioma]}.`;
 }
 
-/** Prompt para analizar la foto de una estancia (módulo de visión). */
-export function construirPromptFoto({ estancia, idioma }) {
+/**
+ * Prompt para analizar la foto de una estancia (módulo de visión). Los textos para el cliente vienen en los
+ * tres idiomas de la web, así cambiar de idioma no obliga a analizar otra vez; la nota técnica, en español (para Jordi).
+ */
+export function construirPromptFoto({ estancia }) {
   const E = ETIQUETAS.es;
   const extras = EXTRAS_ESTANCIA.map((x) => `- "${x}": ${E.extra[x]}`).join('\n');
   return `Eres el técnico de Reformas Barcelona. Analiza la foto que un cliente ha subido de la estancia que quiere reformar.
@@ -82,16 +85,17 @@ Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma ex
   "esEstancia": boolean,                // false si la foto no muestra una estancia de una vivienda
   "estanciaDetectada": uno de ${JSON.stringify(ESTANCIAS)} o null,
   "estado": "bueno" | "regular" | "a_reformar",
-  "elementos": [hasta 6 strings cortos con lo que ves: sanitarios, revestimientos, muebles, instalaciones…],
+  "elementos": { "es": [hasta 6 strings cortos con lo que ves: sanitarios, revestimientos, muebles, instalaciones…], "ca": [los mismos en catalán], "en": [los mismos en inglés] },
   "calidadAparente": uno de ${JSON.stringify(CALIDADES)} o null,   // la calidad de lo que hay ahora
-  "extrasSugeridos": [ { "extra": código, "motivo": frase corta explicando qué ves que lo justifica } ],
+  "extrasSugeridos": [ { "extra": código, "motivo": { "es": frase corta explicando qué ves que lo justifica, "ca": la misma en catalán, "en": la misma en inglés } } ],
   "confianza": número entre 0 y 1,
-  "notaTecnica": frase para el técnico sobre algo a revisar en la visita (humedades, grietas, instalación antigua…) o null
+  "notaTecnica": frase en español para el técnico sobre algo a revisar en la visita (humedades, grietas, instalación antigua…) o null
 }
 
 Códigos de extras permitidos (usa SOLO estos y solo si la foto lo justifica):
 ${extras}
 
-Reglas: no menciones precios ni dinero. Escribe "elementos", "motivo" y "notaTecnica" en ${NOMBRE_IDIOMA[idioma]}.
+Reglas: no menciones precios ni dinero. "elementos" y "motivo" van en los tres idiomas (es, ca, en) con el mismo contenido;
+"notaTecnica", siempre en español.
 Si no estás seguro, baja la confianza en lugar de inventar.`;
 }

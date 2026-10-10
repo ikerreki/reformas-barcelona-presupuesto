@@ -64,7 +64,8 @@ function htmlZona(e, i) {
   else if (f.analisis && !f.analisis.esEstancia) cuerpo = `<p class="foto__aviso">${h(t.noEstancia)}</p>`;
   else if (f.analisis) {
     const a = f.analisis;
-    const vemos = [a.estado ? t.estado[a.estado] : '', ...a.elementos].filter(Boolean).join(' · ');
+    // Los textos de la IA vienen en los tres idiomas: al cambiar de idioma no hay que volver a analizar.
+    const vemos = [a.estado ? t.estado[a.estado] : '', ...(a.elementos[estado.idioma] || [])].filter(Boolean).join(' · ');
     const otra = a.estanciaDetectada && e.tipo && a.estanciaDetectada !== e.tipo
       ? `<p class="foto__aviso">${h(t.otraEstancia(E.estanciaMin[a.estanciaDetectada], E.estanciaMin[e.tipo]))}</p>` : '';
     const detectada = f.tipoDetectado && e.tipo === a.estanciaDetectada
@@ -74,7 +75,8 @@ function htmlZona(e, i) {
     const lista = a.extrasSugeridos.length
       ? `<ul class="foto__sugerencias">${a.extrasSugeridos.map((s) => {
           const ya = e.extras.includes(s.extra);
-          return `<li><span><strong>${h(E.extra[s.extra])}</strong>${s.motivo ? `<small>${h(s.motivo)}</small>` : ''}</span>
+          const motivo = s.motivo && s.motivo[estado.idioma];
+          return `<li><span><strong>${h(E.extra[s.extra])}</strong>${motivo ? `<small>${h(motivo)}</small>` : ''}</span>
             <button type="button" class="btn btn--texto" data-foto-anadir="${i}" data-extra="${s.extra}" ${ya ? 'disabled' : ''}>${h(ya ? t.anadido : t.anadir)}</button></li>`;
         }).join('')}</ul>
         ${pendientes.length > 1 ? `<button type="button" class="btn btn--secundario" data-foto-todas="${i}">${h(t.todas)}</button>` : ''}`
