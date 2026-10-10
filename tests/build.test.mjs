@@ -26,7 +26,7 @@ async function ejecutarNodo(nombre, { input, nodos = {}, prevNode = 'Anterior' }
 const anio = Number(hoyEnMadrid().slice(0, 4));
 
 test('el código generado no contiene import/export (n8n no los admite)', () => {
-  for (const n of ['validar', 'calcular', 'comprobar-ia', 'montar']) {
+  for (const n of ['validar', 'calcular', 'asignar-numero', 'comprobar-ia', 'montar']) {
     const c = buildCodigoNodo(n);
     assert.ok(!/^\s*(import|export)\s/m.test(c), n);
   }
@@ -52,51 +52,79 @@ test('nodo validar: lee el body del Webhook', async () => {
   assert.equal(out.solicitud.cliente.nombre, 'Marta Puig');
 });
 
-test('nodo calcular: con la hoja → total de Marta, tarifas de la hoja y número correlativo', async () => {
+test('nodo calcular: solicitud nueva con la hoja → total de Marta y hay que reservar fila', async () => {
   const validar = { ok: true, solicitud: solicitudMarta() };
-  const hoja = { valueRanges: valueRangesDesde(TARIFAS_RESPALDO, [[`P-${anio}-0007`, 'otro-id-0001']]) };
+  const hoja = { valueRanges: valueRangesDesde(TARIFAS_RESPALDO, [[`P-${anio}-0001`, 'otro-id-0001']]) };
   const out = await ejecutarNodo('calcular', { input: hoja, nodos: { Validar: validar } });
   assert.equal(out.calculo.totalCents, 809490);
   assert.equal(out.origenTarifas, 'sheet');
-  assert.equal(out.numero, `P-${anio}-0008`);
+  assert.equal(out.reservar, true);
   assert.equal(out.numeroExistente, false);
   assert.equal(out.numeroProvisional, false);
+  assert.equal(out.filaReserva.length, 18);
+  assert.equal(out.filaReserva[1], 'test-0001');
+  assert.equal(out.filaReserva[17], 'pendiente');
   assert.match(out.fechaISO, /^\d{4}-\d{2}-\d{2}$/);
   assert.ok(out.promptRedaccion.includes('<<<DATOS_CLIENTE'));
 });
 
-test('nodo calcular: Solicitudes vacía (Google omite "values") → P-AAAA-0001', async () => {
-  const vr = valueRangesDesde(TARIFAS_RESPALDO);
-  delete vr[vr.length - 1].values;
-  const out = await ejecutarNodo('calcular', { input: { valueRanges: vr }, nodos: { Validar: { ok: true, solicitud: solicitudMarta() } } });
-  assert.equal(out.numero, `P-${anio}-0001`);
-});
-
-test('nodo calcular: hoja caída → tarifas de respaldo, mismo total y número provisional', async () => {
+test('nodo calcular: hoja caída → tarifas de respaldo, mismo total, número provisional y sin reserva', async () => {
   const out = await ejecutarNodo('calcular', {
     input: { error: { message: 'Google no responde' } },
     nodos: { Validar: { ok: true, solicitud: solicitudMarta() } },
   });
   assert.equal(out.origenTarifas, 'respaldo');
   assert.equal(out.calculo.totalCents, 809490);
+  assert.equal(out.reservar, false);
   assert.equal(out.numeroProvisional, true);
   assert.ok(out.numero.startsWith(`P-${anio}-T`));
 });
 
-test('nodo calcular: hoja legible pero con un precio roto → respaldo, pero numeración real', async () => {
+test('nodo calcular: hoja legible pero con un precio roto → respaldo, pero se reserva fila', async () => {
   const vr = valueRangesDesde(TARIFAS_RESPALDO);
   vr[0].values[1][3] = 'ochocientos';
   const out = await ejecutarNodo('calcular', { input: { valueRanges: vr }, nodos: { Validar: { ok: true, solicitud: solicitudMarta() } } });
   assert.equal(out.origenTarifas, 'respaldo');
-  assert.equal(out.numeroProvisional, false);
+  assert.equal(out.reservar, true);
   assert.equal(out.calculo.totalCents, 809490);
 });
 
-test('nodo calcular: mismo solicitudId ya registrado → mismo número (idempotencia)', async () => {
-  const vr = valueRangesDesde(TARIFAS_RESPALDO, [[`P-${anio}-0003`, 'test-0001']]);
+test('nodo calcular: mismo solicitudId ya registrado → mismo número y sin reserva (idempotencia)', async () => {
+  const vr = valueRangesDesde(TARIFAS_RESPALDO, [[`P-${anio}-0001`, 'x'], [`P-${anio}-0002`, 'test-0001']]);
   const out = await ejecutarNodo('calcular', { input: { valueRanges: vr }, nodos: { Validar: { ok: true, solicitud: solicitudMarta() } } });
-  assert.equal(out.numero, `P-${anio}-0003`);
+  assert.equal(out.numero, `P-${anio}-0002`);
   assert.equal(out.numeroExistente, true);
+  assert.equal(out.reservar, false);
+});
+
+test('nodo calcular: fila reservada pero aún sin número (otra ejecución en curso) → su número por posición', async () => {
+  const vr = valueRangesDesde(TARIFAS_RESPALDO, [[`P-${anio}-0001`, 'x'], ['', 'test-0001']]);
+  const out = await ejecutarNodo('calcular', { input: { valueRanges: vr }, nodos: { Validar: { ok: true, solicitud: solicitudMarta() } } });
+  assert.equal(out.numero, `P-${anio}-0002`);
+  assert.equal(out.numeroExistente, true);
+});
+
+test('nodo asignar-numero: el número sale de la fila que Google reservó', async () => {
+  const calcular = { reservar: true, numero: null, numeroProvisional: false, numeroExistente: false, fechaISO: `${anio}-10-10` };
+  const out = await ejecutarNodo('asignar-numero', {
+    input: { updates: { updatedRange: 'Solicitudes!A8:R8' } },
+    nodos: { Calcular: calcular },
+  });
+  assert.deepEqual(out, { numero: `P-${anio}-0007`, numeroProvisional: false, numeroExistente: false, filaReservada: 'Solicitudes!A8:R8' });
+});
+
+test('nodo asignar-numero: si la reserva falló → número provisional', async () => {
+  const calcular = { reservar: true, numero: null, numeroProvisional: false, numeroExistente: false, fechaISO: `${anio}-10-10` };
+  const out = await ejecutarNodo('asignar-numero', { input: { error: { message: '403' } }, nodos: { Calcular: calcular } });
+  assert.equal(out.numeroProvisional, true);
+  assert.ok(out.numero.startsWith(`P-${anio}-T`));
+  assert.equal(out.filaReservada, null);
+});
+
+test('nodo asignar-numero: solicitud repetida → conserva su número, sin fila nueva', async () => {
+  const calcular = { reservar: false, numero: `P-${anio}-0002`, numeroProvisional: false, numeroExistente: true, fechaISO: `${anio}-10-10` };
+  const out = await ejecutarNodo('asignar-numero', { input: calcular, nodos: { Calcular: calcular } });
+  assert.deepEqual(out, { numero: `P-${anio}-0002`, numeroProvisional: false, numeroExistente: true, filaReservada: null });
 });
 
 test('nodo comprobar-ia: JSON en ```json``` desde Gemini → ok y modelo gemini', async () => {
@@ -129,11 +157,13 @@ async function calcularMarta() {
   });
 }
 
+const ASIGNADO = { numero: `P-${anio}-0007`, numeroProvisional: false, numeroExistente: false, filaReservada: 'Solicitudes!A8:R8' };
+
 test('nodo montar: con textos de la IA → respuesta completa, email y fila de la hoja', async () => {
   const calcular = await calcularMarta();
   const out = await ejecutarNodo('montar', {
     input: { ok: true, textos: TEXTOS_MARTA, modelo: 'claude' },
-    nodos: { Calcular: calcular },
+    nodos: { Calcular: calcular, 'Asignar número': ASIGNADO },
   });
   assert.equal(out.respuesta.ok, true);
   assert.equal(out.respuesta.presupuesto.total, 8094.9);
@@ -142,16 +172,18 @@ test('nodo montar: con textos de la IA → respuesta completa, email y fila de l
   assert.equal(out.modelo, 'claude');
   assert.ok(out.htmlEmail.includes('8.094,90 €'));
   assert.ok(out.htmlPDF.startsWith('<!doctype html>'));
-  assert.equal(out.asunto, `Tu presupuesto ${calcular.numero} · Reformas Barcelona`);
+  assert.equal(out.asunto, `Tu presupuesto P-${anio}-0007 · Reformas Barcelona`);
+  assert.equal(out.respuesta.presupuesto.numero, `P-${anio}-0007`);
   assert.ok(out.resumenJordi.asunto.startsWith('Nueva solicitud · Baño'));
-  assert.equal(out.filaSolicitud[0], calcular.numero);
+  assert.equal(out.filaSolicitud[0], `P-${anio}-0007`);
+  assert.ok(!out.htmlEmailSinAdjunto.includes('PDF'));
   assert.equal(out.filaSolicitud[1], 'test-0001');
   assert.equal(out.filaSolicitud.length, 18);
 });
 
 test('nodo montar: si la IA falló → plantilla, y el aviso llega a Jordi', async () => {
   const calcular = await calcularMarta();
-  const out = await ejecutarNodo('montar', { input: { ok: false, textos: null, modelo: 'gemini' }, nodos: { Calcular: calcular } });
+  const out = await ejecutarNodo('montar', { input: { ok: false, textos: null, modelo: 'gemini' }, nodos: { Calcular: calcular, 'Asignar número': ASIGNADO } });
   assert.equal(out.textoPlantilla, true);
   assert.equal(out.modelo, 'plantilla');
   assert.equal(out.respuesta.presupuesto.textos.saludo, 'Hola Marta:');

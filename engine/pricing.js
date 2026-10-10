@@ -288,8 +288,13 @@ export function normalizarTarifas(valueRanges) {
  */
 export function siguienteNumero(filasSolicitudes, anio, solicitudId) {
   const filas = Array.isArray(filasSolicitudes) ? filasSolicitudes : [];
-  const previa = filas.find((f) => Array.isArray(f) && f[1] && f[1] === solicitudId && /^P-\d{4}-\d{4,}$/.test(f[0]));
-  if (previa) return { numero: previa[0], existente: true };
+  const i = filas.findIndex((f) => Array.isArray(f) && f[1] && f[1] === solicitudId);
+  if (i !== -1) {
+    // Ya registrada. Si la fila está reservada pero aún sin número (otra ejecución en curso),
+    // su número es el de su posición, igual que numeroDesdeFila (fila de la hoja = i + 2).
+    const n = String(filas[i][0] ?? '');
+    return { numero: /^P-\d{4}-\d{4,}$/.test(n) ? n : `P-${anio}-${String(i + 1).padStart(4, '0')}`, existente: true };
+  }
   const re = new RegExp(`^P-${anio}-(\\d{4,})$`);
   const max = filas.reduce((m, f) => {
     const g = Array.isArray(f) && re.exec(String(f[0] ?? ''));

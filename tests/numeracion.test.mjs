@@ -16,6 +16,12 @@ test('idempotencia: un solicitudId ya registrado devuelve su número', () => {
   assert.deepEqual(siguienteNumero(filas, 2026, 'b'), { numero: 'P-2026-0012', existente: true });
 });
 
+test('idempotencia con fila reservada aún sin número: el número sale de su posición', () => {
+  // fila 0 → P-2026-0001 (hoja: fila 2), fila 2 → P-2026-0003 (hoja: fila 4)
+  const filas = [['P-2026-0001', 'a'], ['P-2026-0002', 'b'], ['', 'c']];
+  assert.deepEqual(siguienteNumero(filas, 2026, 'c'), { numero: 'P-2026-0003', existente: true });
+});
+
 test('los números de otros años no cuentan', () => {
   const filas = [['P-2025-0099', 'x']];
   assert.deepEqual(siguienteNumero(filas, 2026, 'nuevo-0001'), { numero: 'P-2026-0001', existente: false });

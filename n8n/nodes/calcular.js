@@ -1,5 +1,5 @@
 // Nodo «Calcular»: lee las tarifas de la hoja (o usa las de respaldo), calcula el presupuesto,
-// asigna el número P-AAAA-NNNN y prepara el prompt para la IA (sin importes).
+// detecta si esta solicitud ya se registró (reintento / doble clic) y prepara el prompt para la IA (sin importes).
 const { solicitud } = $('Validar').first().json;
 const hoja = $input.first().json;
 
@@ -10,17 +10,24 @@ const origenTarifas = lectura.ok ? 'sheet' : 'respaldo';
 
 const fechaISO = hoyEnMadrid();
 const anio = Number(fechaISO.slice(0, 4));
-let numero;
+let numero = null;
 let numeroExistente = false;
 let numeroProvisional = false;
 if (valueRanges) {
   const vrSolicitudes = valueRanges.find((r) => String(r.range || '').replace(/^'/, '').startsWith('Solicitudes'));
-  ({ numero, existente: numeroExistente } = siguienteNumero((vrSolicitudes && vrSolicitudes.values) || [], anio, solicitud.solicitudId));
+  const previa = siguienteNumero((vrSolicitudes && vrSolicitudes.values) || [], anio, solicitud.solicitudId);
+  if (previa.existente) ({ numero, existente: numeroExistente } = previa);
 } else {
   // Sin hoja no hay numeración fiable: número provisional único y aviso a Jordi.
   numero = `P-${anio}-T${Date.now().toString(36).toUpperCase()}`;
   numeroProvisional = true;
 }
+
+// Fila que se reserva en «Solicitudes» ANTES de llamar a la IA: el append de Google es atómico,
+// así que la fila que nos toca da un número único (ver nodo «Asignar número»).
+const c = solicitud.cliente;
+const filaReserva = ['', solicitud.solicitudId, fechaISO, c.nombre, c.email, c.telefono, c.direccion, solicitud.idioma,
+  '', '', '', '', '', '', '', '', '', 'pendiente'];
 
 return [{
   json: {
@@ -32,6 +39,8 @@ return [{
     numero,
     numeroExistente,
     numeroProvisional,
+    reservar: Boolean(valueRanges) && !numeroExistente,
+    filaReserva,
     fechaISO,
     promptRedaccion: construirPromptRedaccion({ solicitud, tarifas }),
   },
