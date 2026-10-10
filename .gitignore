@@ -18,3 +18,9 @@ reformas-barcelona-logo.png
 reformas-barcelona-logo.svg
 reformas-barcelona-logo-blanco.png
 reformas-barcelona-logo-blanco.svg
+
+# Espacio de trabajo del plan (scratch)
+.superpowers/
+
+# Build de la web
+dist/
