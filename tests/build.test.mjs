@@ -196,6 +196,17 @@ test('nodo comprobar-ia: JSON en ```json``` desde Gemini → ok y modelo gemini'
   assert.deepEqual(out.textos, TEXTOS_MARTA);
 });
 
+test('nodo comprobar-ia: rechaza un texto que promete un extra no elegido (los extras salen de Calcular)', async () => {
+  const sinFontaneria = solicitudMarta();
+  sinFontaneria.estancias[0].extras = ['demolicion'];
+  const nodos = { Calcular: { solicitud: sinFontaneria } };
+  const out = await ejecutarNodo('comprobar-ia', { input: { text: JSON.stringify(TEXTOS_MARTA) }, nodos, prevNode: 'Redactar · Claude' });
+  assert.equal(out.ok, false);
+  assert.match(out.motivo, /fontaneria/);
+  const conTodo = await ejecutarNodo('comprobar-ia', { input: { text: JSON.stringify(TEXTOS_MARTA) }, nodos: { Calcular: { solicitud: solicitudMarta() } }, prevNode: 'Redactar · Claude' });
+  assert.equal(conTodo.ok, true);
+});
+
 test('nodo comprobar-ia: texto con un importe → rechazado', async () => {
   const malo = { ...TEXTOS_MARTA, cierre: 'Todo por solo 300 euros.' };
   const out = await ejecutarNodo('comprobar-ia', { input: { text: JSON.stringify(malo) }, prevNode: 'Redactar · Claude' });

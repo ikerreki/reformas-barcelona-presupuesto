@@ -73,3 +73,22 @@ test('prompt de foto: catálogo cerrado y sin precios', () => {
   assert.equal(contieneImportes(p), false);
   assert.ok(!p.includes('€'));
 });
+
+test('la plantilla nunca nombra un extra que no se ha elegido (todas las combinaciones de un extra)', () => {
+  const todos = ['demolicion', 'fontaneria', 'electricidad', 'pintura', 'suelo_radiante', 'aire'];
+  for (const idioma of ['es', 'ca', 'en']) {
+    for (const calidad of ['basica', 'media', 'alta']) {
+      for (const extra of [null, ...todos]) {
+        const s = valida(solicitudMarta({ idioma, estancias: [{ tipo: 'cocina', m2: 10, calidad, extras: extra ? [extra] : [] }] }));
+        const t = textosPlantilla({ solicitud: s, tarifas: TARIFAS_RESPALDO });
+        assert.deepEqual(validarTextosIA(t, { extrasElegidos: extra ? [extra] : [] }), { ok: true, motivo: null }, `${idioma}/${calidad}/${extra}`);
+      }
+    }
+  }
+});
+
+test('prompt de redacción: prohíbe nombrar extras no elegidos y adaptar la calidad a la estancia', () => {
+  const p = construirPromptRedaccion({ solicitud: valida(solicitudMarta()), tarifas: TARIFAS_RESPALDO });
+  assert.match(p, /no lo menciones/);
+  assert.match(p, /no hay grifería en un dormitorio/);
+});

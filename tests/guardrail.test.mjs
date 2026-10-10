@@ -52,3 +52,51 @@ test('validarTextosIA rechaza importes en cualquier campo', () => {
   assert.equal(r.ok, false);
   assert.match(r.motivo, /importe/);
 });
+
+// ---- La IA no puede prometer trabajos que el presupuesto no cobra (caso real: ejecución 72) ----
+const textosEric = () => ({
+  saludo: 'Hola Eric:',
+  resumen: 'Muchas gracias por contactar con Reformas Barcelona. Te enviamos el presupuesto para reformar el salón-comedor y el dormitorio de tu piso de los años 70 en el Eixample, con el punto de luz para el proyector.',
+  trabajos: [
+    'Demolición de los revestimientos actuales y retirada de la lámpara principal del salón, con transporte de escombros al punto limpio.',
+    'Renovación completa de las tuberías de agua y desagües en ambas estancias.',
+    'Instalación eléctrica nueva de cableado, enchufes y mecanismos, con cuadro eléctrico y boletín.',
+    'Suministro e instalación de un equipo de aire acondicionado tipo split con bomba de calor en el dormitorio.',
+    'Limpieza final de la obra.',
+  ],
+  cierre: 'Si tienes cualquier duda o quieres ajustar algún detalle, estaremos encantados de ayudarte.',
+});
+
+test('rechaza un texto que menciona un extra que el cliente no ha elegido (demolición sin demolición)', () => {
+  const r = validarTextosIA(textosEric(), { extrasElegidos: ['fontaneria', 'electricidad', 'pintura', 'aire'] });
+  assert.equal(r.ok, false);
+  assert.match(r.motivo, /demolicion/);
+});
+
+test('acepta el mismo texto si todos los extras que nombra están elegidos', () => {
+  const r = validarTextosIA(textosEric(), { extrasElegidos: ['demolicion', 'fontaneria', 'electricidad', 'aire'] });
+  assert.deepEqual(r, { ok: true, motivo: null });
+});
+
+test('Marta: con demolición y fontanería pasa; sin fontanería, no (habla de tuberías)', () => {
+  assert.equal(validarTextosIA(TEXTOS_MARTA, { extrasElegidos: ['demolicion', 'fontaneria'] }).ok, true);
+  assert.equal(validarTextosIA(TEXTOS_MARTA, { extrasElegidos: ['demolicion'] }).ok, false);
+});
+
+test('las señales de cada extra funcionan en catalán e inglés', () => {
+  // Resumen neutro: el de Marta habla de tuberías y haría fallar cualquier combinación sin fontanería.
+  const resumen = 'Muchas gracias por contactar con Reformas Barcelona. Te enviamos el presupuesto con los trabajos que nos has pedido para tu vivienda.';
+  const base = { ...TEXTOS_MARTA, resumen, trabajos: ['Neteja final de l\'obra.', 'Final clean-up.', 'x'] };
+  for (const [frase, extra] of [
+    ['Enderroc del revestiment i retirada de la runa.', 'demolicion'],
+    ['Canviar totes les canonades d\'aigua.', 'fontaneria'],
+    ['New wiring and fuse box.', 'electricidad'],
+    ['Terra radiant per aigua.', 'suelo_radiante'],
+    ['Air conditioning split unit with heat pump.', 'aire'],
+    ['Gestió de la llicència d\'obra.', 'licencia'],
+  ]) {
+    const t = { ...base, trabajos: [frase, ...base.trabajos] };
+    assert.equal(validarTextosIA(t, { extrasElegidos: [] }).ok, false, frase);
+    assert.equal(validarTextosIA(t, { extrasElegidos: [extra] }).ok, true, frase);
+  }
+});

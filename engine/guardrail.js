@@ -66,10 +66,25 @@ const ENLACE_O_EMAIL = /https?:\/\/|www\.|[^\s@]+@[^\s@]+\.[^\s@]+|\b[\w-]+\.(?:
 const TELEFONO = /(?:\+?\d[\s.-]?){9,}/u;
 const PROMESAS = /(?<![\p{L}])(?:regal\p{L}*|descuentos?|descomptes?|discounts?|gratis|sin coste|sin cargo|sense cost|free of charge|for free|at no cost|no cost|rebaja\p{L}*|oferta especial)(?![\p{L}])/iu;
 
+// Palabras que delatan cada extra (es, ca, en). Si el texto nombra un extra que el cliente NO ha elegido,
+// promete un trabajo que el presupuesto no cobra. La pintura no se vigila: «pintura plástica» forma parte
+// de lo que incluye la calidad básica.
+const SENALES_EXTRA = {
+  demolicion: /demoli|derrib|enderroc|escombro|\bruna\b|rubble/iu,
+  fontaneria: /fontaner|tuber[ií]a|desag[uü]e|lampister|canonad|desgu[aà]s|plumbing|\bpipes?\b|\bdrains?\b/iu,
+  electricidad: /instalaci[oó]n el[eé]ctrica|instal·laci[oó] el[eè]ctrica|cablead|cablejat|cuadro el[eé]ctrico|quadre el[eè]ctric|bolet[ií]n|butllet[ií]|wiring|fuse ?box|electrical installation/iu,
+  suelo_radiante: /suelo radiante|terra radiant|underfloor/iu,
+  aire: /aire acondicionado|aire condicionat|air[- ]?condition|\bsplit\b|bomba de calor|heat pump/iu,
+  licencia: /licencia|ll?ic[eè]ncia|permiso de obra|perm[ií]s d'obra|building permit/iu,
+};
+
 const esTexto = (v, min, max) => typeof v === 'string' && v.trim().length >= min && v.trim().length <= max;
 
-/** Valida la estructura y el contenido de los textos redactados por la IA. */
-export function validarTextosIA(obj) {
+/**
+ * Valida la estructura y el contenido de los textos redactados por la IA.
+ * extrasElegidos (opcional): si se indica, el texto no puede nombrar ningún otro extra.
+ */
+export function validarTextosIA(obj, { extrasElegidos } = {}) {
   if (!obj || typeof obj !== 'object') return { ok: false, motivo: 'respuesta vacía o no es un objeto' };
   if (!esTexto(obj.saludo, 1, 200)) return { ok: false, motivo: 'saludo ausente o con longitud no válida' };
   if (!esTexto(obj.resumen, 100, 1200)) return { ok: false, motivo: 'resumen ausente o con longitud no válida' };
@@ -85,5 +100,9 @@ export function validarTextosIA(obj) {
     return { ok: false, motivo: 'el texto contiene un enlace, un email o un teléfono' };
   }
   if (todos.some((t) => PROMESAS.test(t))) return { ok: false, motivo: 'el texto promete algo gratis o un descuento' };
+  if (Array.isArray(extrasElegidos)) {
+    const noElegido = Object.keys(SENALES_EXTRA).find((x) => !extrasElegidos.includes(x) && todos.some((t) => SENALES_EXTRA[x].test(t)));
+    if (noElegido) return { ok: false, motivo: `el texto menciona un extra que el cliente no ha elegido (${noElegido})` };
+  }
   return { ok: true, motivo: null };
 }
