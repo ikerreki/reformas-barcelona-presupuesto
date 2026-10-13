@@ -180,7 +180,9 @@ empezó con un test que reproducía el fallo (rojo) y terminó con la suite comp
 ## 4. Decisiones de seguridad y buenas prácticas
 
 - **Nunca confiar en lo que llega de una web:** n8n vuelve a validar todo (tipos, rangos, listas permitidas y longitud del texto), aunque la web ya lo haya validado.
-- **CORS limitado** al dominio de la web.
+- **CORS abierto a propósito:** el 13 oct se abrió a cualquier origen porque abrir la web desde un enlace de despliegue de Vercel
+  hacía que el navegador bloqueara la foto y el envío. CORS no protege un webhook público (se puede llamar desde fuera del
+  navegador); la protección real es la validación en n8n, la trampa anti-bots y el límite de 10 solicitudes al día por email.
 - **Ninguna clave en el código:** las credenciales viven en n8n, y el repositorio es público sin riesgo.
 - **Las respuestas al cliente salen antes que los emails:** el cliente no espera a que se envíen los correos.
 
