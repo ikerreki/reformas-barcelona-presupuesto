@@ -196,3 +196,17 @@ empezó con un test que reproducía el fallo (rojo) y terminó con la suite comp
 | Varias estancias | Tarjetas "+ Añadir otra estancia", con partidas agrupadas |
 | Si algo falla | Errores claros en la web, degradación elegante y flujo de errores que avisa a Jordi |
 | Lo que se te ocurra | Foto con visión, trilingüe, honeypot, guardarraíl, evaluación, RGPD, validez calculada |
+
+---
+
+## 6. Visión: la anécdota de la foto y la CNN
+
+- **Prueba real en producción (11 oct):** la foto de prueba del baño antiguo (bañera y lavabo verdes) devolvió
+  «baño · a reformar · confianza 0,95» y sugirió **demolición** y **fontanería**. Con esos extras, el motor calcula
+  **8.094,90 €**: justo el caso de referencia. La IA sugiere, pero el precio lo sigue poniendo el motor.
+- **CNN (slide animada):** la convolución que se ve es real (un detector de bordes aplicado a la foto reducida a 48×48 píxeles).
+  Las capas profundas y la decisión final son una ilustración. Hoy el flujo usa Gemini, un modelo general; la alternativa
+  sería una CNN propia entrenada con fotos de obras, como ConvNeXt en el proyecto de fachadas.
+- **Montaña de pérdida (slide animada):** el punto es una combinación de dos pesos y la altura es el error. El descenso
+  de gradiente da pasos cuesta abajo (la flecha es la dirección contraria al gradiente) hasta el mínimo de error, y la curva
+  de la derecha muestra cómo baja el error en cada paso. Entrenar = bajar la montaña.
