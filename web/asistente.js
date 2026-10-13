@@ -73,20 +73,28 @@ function pintar() {
   pintarLado();
 }
 
+let claveLado = '';
+let estanciasPintadas = 0;
 function pintarLado() {
   if (!lado) return;
+  // Solo se repinta si cambia algo que se ve en el panel (no al escribir nombre, email, etc.).
+  const clave = JSON.stringify([actual, idioma(), estado.estancias.map((e) => [e.tipo, e.m2, e.calidad, e.extras.length]), $('#licencia')?.checked, pasos.map((_, i) => titulo(i))]);
+  if (clave === claveLado) return;
+  claveLado = clave;
   const E = ETIQUETAS[idioma()] || ETIQUETAS.es;
   const listaPasos = pasos.map((_, i) => {
     const clase = i === actual ? 'lado__paso--activo' : i < actual ? 'lado__paso--hecho' : '';
     return `<li><button type="button" tabindex="-1" class="lado__paso ${clase}" data-ir="${i}">
       <span class="lado__num">${i < actual ? CHECK : `0${i + 1}`}</span><span class="lado__titulo">${titulo(i)}</span></button></li>`;
   }).join('');
-  const estancias = estado.estancias.map((e) => {
+  const nuevas = estado.estancias.length > estanciasPintadas ? estanciasPintadas : Infinity;
+  estanciasPintadas = estado.estancias.length;
+  const estancias = estado.estancias.map((e, i) => {
     const m2 = String(e.m2 ?? '').trim();
     const detalle = [m2 ? `${m2.replace('.', ',')} m²` : '', E.calidad[e.calidad] || ''].filter(Boolean).join(' · ');
     const icono = e.tipo ? ICONOS[e.tipo] : '<span class="lado__hueco"></span>';
     const extras = e.extras.length ? `<span class="lado__extras">+${e.extras.length}</span>` : '';
-    return `<div class="lado__estancia${e.tipo ? '' : ' lado__estancia--vacia'}"><span class="lado__icono">${icono}</span>
+    return `<div class="lado__estancia${e.tipo ? '' : ' lado__estancia--vacia'}${i >= nuevas ? ' lado__estancia--nueva' : ''}"><span class="lado__icono">${icono}</span>
       <span class="lado__texto"><strong>${e.tipo ? E.estancia[e.tipo] : '—'}</strong><small>${detalle || '—'}</small></span>${extras}</div>`;
   }).join('');
   const licencia = $('#licencia')?.checked ? `<div class="lado__estancia lado__estancia--extra"><span class="lado__icono">${CHECK}</span><span class="lado__texto"><strong>${E.extra.licencia}</strong></span></div>` : '';
