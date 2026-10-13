@@ -29,7 +29,7 @@ export async function reducirImagen(file) {
 
 export async function analizarFoto(estancia, imagen, idioma) {
   const control = new AbortController();
-  const reloj = setTimeout(() => control.abort(), CONFIG.timeoutMs);
+  const reloj = setTimeout(() => control.abort(), CONFIG.timeoutFotoMs || CONFIG.timeoutMs);
   try {
     const r = await fetch(`${CONFIG.webhookBase}/analizar-foto`, {
       method: 'POST',
