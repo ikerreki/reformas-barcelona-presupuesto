@@ -1,9 +1,9 @@
 // Foto de la estancia: se reduce en el navegador, se analiza en n8n (Gemini) y se muestran
-// las sugerencias con su motivo. El cliente decide qué añadir; el precio lo calcula el motor.
+// las sugerencias con su motivo. El cliente decide qué añadir. Aquí no se muestra ningún precio:
+// el único precio es el del presupuesto, que calcula el motor con las tarifas.
 import { CONFIG } from './config.js';
 import { UI } from './i18n.js';
 import { ETIQUETAS } from './engine/etiquetas.js';
-import { formatEUR } from './engine/formato.js';
 import { escaparHTML as h } from './engine/render.js';
 import { tipoSugerido } from './engine/foto.js';
 import { estado, pintarEstancias } from './form.js';
@@ -81,11 +81,8 @@ function htmlZona(e, i) {
         }).join('')}</ul>
         ${pendientes.length > 1 ? `<button type="button" class="btn btn--secundario" data-foto-todas="${i}">${h(t.todas)}</button>` : ''}`
       : `<p class="ayuda">${h(t.sinSugerencias)}</p>`;
-    const est = f.estimacion && f.estimacion.total != null
-      ? `<p class="foto__estimacion">${h(t.estimacion(formatEUR(Math.round(f.estimacion.total * 100))))}<small>${h(t.orientativo)}</small></p>`
-      : `<p class="ayuda">${h(t.sinM2)}</p>`;
     cuerpo = `${detectada}${otra}<p class="foto__vemos"><strong>${h(t.vemos)}:</strong> ${h(vemos)}</p>${dudosa}
-      <p class="foto__titulo">${h(t.sugerimos)}</p>${lista}${est}`;
+      <p class="foto__titulo">${h(t.sugerimos)}</p>${lista}`;
   }
   return `<div class="foto__fila"><img class="foto__miniatura" src="${f.preview}" alt=""><div class="foto__cuerpo" aria-live="polite">${cuerpo}</div></div>${boton}`;
 }
