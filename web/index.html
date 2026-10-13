@@ -14,6 +14,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <script type="module" src="app.js"></script>
   <script type="module" src="efectos.js"></script>
+  <script type="module" src="asistente.js"></script>
 </head>
 <body>
   <a class="saltar" href="#formulario" data-i18n="saltar">Ir al formulario</a>
@@ -38,7 +39,6 @@
       </div>
       <div class="hero__rejilla">
         <div class="hero__texto-col">
-          <p class="hero__eyebrow revelar"><span class="pulso" aria-hidden="true"></span><span data-i18n="hero.eyebrow"></span></p>
           <h1 class="hero__titulo" data-i18n="hero.titulo"></h1>
           <p class="hero__texto revelar" data-i18n="hero.texto"></p>
           <div class="hero__acciones revelar">
@@ -71,110 +71,121 @@
 
     <div class="lienzo">
       <div class="zona">
-        <aside class="rail" id="rail" aria-hidden="true"></aside>
         <div class="zona__contenido">
-          <form id="formulario" class="formulario" novalidate>
-            <section class="paso foco-luz" aria-labelledby="titulo-paso1">
-              <h2 id="titulo-paso1" class="paso__titulo"><span class="paso__num" aria-hidden="true">1</span><span data-i18n="paso1"></span></h2>
-              <div id="estancias"></div>
-              <div class="anadir">
-                <button type="button" id="anadir" class="btn btn--secundario btn--mas" data-i18n="anadir"></button>
-                <p class="ayuda" id="ayuda-max" data-i18n="maxEstancias" hidden></p>
-              </div>
-              <fieldset class="bloque">
-                <legend data-i18n="gestiones"></legend>
-                <label class="opcion foco-luz">
-                  <input type="checkbox" id="licencia">
-                  <span><strong id="licencia-titulo"></strong><small id="licencia-desc"></small></span>
-                </label>
-              </fieldset>
-            </section>
+          <!-- Asistente: un paso cada vez (asistente.js). Sin JavaScript se ven los tres pasos seguidos. -->
+          <form id="formulario" class="formulario asistente" novalidate>
+            <div class="asistente__marco">
+              <aside class="asistente__lado" id="asistente-lado" aria-hidden="true"></aside>
+              <div class="asistente__cuerpo">
+                <div class="asistente__progreso" aria-hidden="true"><span id="asistente-barra"></span></div>
 
-            <section class="paso foco-luz" aria-labelledby="titulo-paso2">
-              <h2 id="titulo-paso2" class="paso__titulo"><span class="paso__num" aria-hidden="true">2</span><span data-i18n="paso2"></span></h2>
-              <div class="campo" data-campo="descripcion">
-                <p class="ayuda" id="ayuda-descripcion" data-i18n="descripcionAyuda"></p>
-                <textarea id="descripcion" rows="5" maxlength="1000" aria-describedby="ayuda-descripcion contador" data-i18n-placeholder="descripcionPlaceholder" aria-labelledby="titulo-paso2"></textarea>
-                <p class="contador" id="contador" aria-live="polite">0/1000</p>
-                <p class="error" role="alert"></p>
-              </div>
-            </section>
+                <section class="paso foco-luz" aria-labelledby="titulo-paso1">
+                  <h2 id="titulo-paso1" class="paso__titulo"><span class="paso__num" aria-hidden="true">1</span><span data-i18n="paso1"></span></h2>
+                  <div id="estancias"></div>
+                  <div class="anadir">
+                    <button type="button" id="anadir" class="btn btn--secundario btn--mas" data-i18n="anadir"></button>
+                    <p class="ayuda" id="ayuda-max" data-i18n="maxEstancias" hidden></p>
+                  </div>
+                  <fieldset class="bloque">
+                    <legend data-i18n="gestiones"></legend>
+                    <label class="opcion">
+                      <input type="checkbox" id="licencia">
+                      <span><strong id="licencia-titulo"></strong><small id="licencia-desc"></small></span>
+                    </label>
+                  </fieldset>
+                </section>
 
-            <section class="paso foco-luz" aria-labelledby="titulo-paso3">
-              <h2 id="titulo-paso3" class="paso__titulo"><span class="paso__num" aria-hidden="true">3</span><span data-i18n="paso3"></span></h2>
-              <div class="rejilla">
-                <!-- data-formato: al salir del campo se aplica el mismo formato que en n8n (engine/normalizar.js). -->
-                <div class="campo" data-campo="cliente.nombre">
-                  <label for="nombre"><span data-i18n="nombre"></span> <span class="req" aria-hidden="true">*</span></label>
-                  <input id="nombre" autocomplete="given-name" required maxlength="100" data-formato="nombre">
-                  <p class="error" role="alert"></p>
-                </div>
-                <div class="campo" data-campo="cliente.apellidos">
-                  <label for="apellidos"><span data-i18n="apellidos"></span> <span class="req" aria-hidden="true">*</span></label>
-                  <input id="apellidos" autocomplete="family-name" required maxlength="100" data-formato="nombre">
-                  <p class="error" role="alert"></p>
-                </div>
-                <div class="campo" data-campo="cliente.email">
-                  <label for="email"><span data-i18n="email"></span> <span class="req" aria-hidden="true">*</span></label>
-                  <input id="email" type="email" autocomplete="email" inputmode="email" required data-formato="email">
-                  <p class="error" role="alert"></p>
-                </div>
-                <div class="campo" data-campo="cliente.telefono">
-                  <label for="telefono"><span data-i18n="telefono"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
-                  <input id="telefono" type="tel" autocomplete="tel" maxlength="30" data-formato="telefono">
-                  <p class="error" role="alert"></p>
-                </div>
-              </div>
-              <!-- Dirección de la obra: opcional y plegada; se abre sola si hay un error dentro. -->
-              <details class="direccion campo" id="direccion-obra" data-campo="cliente.direccion">
-                <summary><span class="si-plegada" data-i18n="direccionAnadir"></span><span class="si-abierta" data-i18n="direccion"></span> <small>(<span data-i18n="opcional"></span>)</small></summary>
-                <p class="error" role="alert"></p>
-                <div class="rejilla">
-                  <div class="campo campo--ancho" data-campo="cliente.direccion.calle">
-                    <label for="calle" data-i18n="calle"></label>
-                    <input id="calle" autocomplete="address-line1" maxlength="120" data-formato="calle">
+                <section class="paso foco-luz" aria-labelledby="titulo-paso2">
+                  <h2 id="titulo-paso2" class="paso__titulo"><span class="paso__num" aria-hidden="true">2</span><span data-i18n="paso2"></span></h2>
+                  <div class="campo" data-campo="descripcion">
+                    <p class="ayuda" id="ayuda-descripcion" data-i18n="descripcionAyuda"></p>
+                    <textarea id="descripcion" rows="6" maxlength="1000" aria-describedby="ayuda-descripcion contador" data-i18n-placeholder="descripcionPlaceholder" aria-labelledby="titulo-paso2"></textarea>
+                    <p class="contador" id="contador" aria-live="polite">0/1000</p>
                     <p class="error" role="alert"></p>
                   </div>
-                  <div class="campo" data-campo="cliente.direccion.piso">
-                    <label for="piso"><span data-i18n="piso"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
-                    <input id="piso" autocomplete="address-line2" maxlength="40" data-formato="piso">
+                </section>
+
+                <section class="paso foco-luz" aria-labelledby="titulo-paso3">
+                  <h2 id="titulo-paso3" class="paso__titulo"><span class="paso__num" aria-hidden="true">3</span><span data-i18n="paso3"></span></h2>
+                  <div class="rejilla">
+                    <!-- data-formato: al salir del campo se aplica el mismo formato que en n8n (engine/normalizar.js). -->
+                    <div class="campo campo--flotante" data-campo="cliente.nombre">
+                      <label for="nombre"><span data-i18n="nombre"></span> <span class="req" aria-hidden="true">*</span></label>
+                      <input id="nombre" autocomplete="given-name" required maxlength="100" data-formato="nombre" placeholder=" ">
+                      <p class="error" role="alert"></p>
+                    </div>
+                    <div class="campo campo--flotante" data-campo="cliente.apellidos">
+                      <label for="apellidos"><span data-i18n="apellidos"></span> <span class="req" aria-hidden="true">*</span></label>
+                      <input id="apellidos" autocomplete="family-name" required maxlength="100" data-formato="nombre" placeholder=" ">
+                      <p class="error" role="alert"></p>
+                    </div>
+                    <div class="campo campo--flotante" data-campo="cliente.email">
+                      <label for="email"><span data-i18n="email"></span> <span class="req" aria-hidden="true">*</span></label>
+                      <input id="email" type="email" autocomplete="email" inputmode="email" required data-formato="email" placeholder=" ">
+                      <p class="error" role="alert"></p>
+                    </div>
+                    <div class="campo campo--flotante" data-campo="cliente.telefono">
+                      <label for="telefono"><span data-i18n="telefono"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
+                      <input id="telefono" type="tel" autocomplete="tel" maxlength="30" data-formato="telefono" placeholder=" ">
+                      <p class="error" role="alert"></p>
+                    </div>
+                  </div>
+                  <!-- Dirección de la obra: opcional y plegada; se abre sola si hay un error dentro. -->
+                  <details class="direccion campo" id="direccion-obra" data-campo="cliente.direccion">
+                    <summary><span class="si-plegada" data-i18n="direccionAnadir"></span><span class="si-abierta" data-i18n="direccion"></span> <small>(<span data-i18n="opcional"></span>)</small></summary>
+                    <p class="error" role="alert"></p>
+                    <div class="rejilla">
+                      <div class="campo campo--ancho campo--flotante" data-campo="cliente.direccion.calle">
+                        <label for="calle" data-i18n="calle"></label>
+                        <input id="calle" autocomplete="address-line1" maxlength="120" data-formato="calle" placeholder=" ">
+                        <p class="error" role="alert"></p>
+                      </div>
+                      <div class="campo campo--flotante" data-campo="cliente.direccion.piso">
+                        <label for="piso"><span data-i18n="piso"></span> <small>(<span data-i18n="opcional"></span>)</small></label>
+                        <input id="piso" autocomplete="address-line2" maxlength="40" data-formato="piso" placeholder=" ">
+                        <p class="error" role="alert"></p>
+                      </div>
+                      <div class="campo campo--flotante" data-campo="cliente.direccion.cp">
+                        <label for="cp" data-i18n="cp"></label>
+                        <input id="cp" autocomplete="postal-code" inputmode="numeric" maxlength="5" data-formato="cp" placeholder=" ">
+                        <p class="error" role="alert"></p>
+                      </div>
+                      <div class="campo campo--ancho campo--flotante" data-campo="cliente.direccion.poblacion">
+                        <label for="poblacion" data-i18n="poblacion"></label>
+                        <input id="poblacion" autocomplete="address-level2" maxlength="60" value="Barcelona" data-formato="nombre" placeholder=" ">
+                        <p class="error" role="alert"></p>
+                      </div>
+                    </div>
+                  </details>
+                  <!-- Trampa anti-spam (honeypot): invisible para personas, los bots la rellenan. -->
+                  <div class="trampa" aria-hidden="true">
+                    <label for="website">Web</label>
+                    <input id="website" name="website" tabindex="-1" autocomplete="off">
+                  </div>
+                  <div class="campo" data-campo="privacidad">
+                    <label class="opcion opcion--privacidad">
+                      <input type="checkbox" id="privacidad" required>
+                      <span data-i18n="privacidad"></span>
+                    </label>
                     <p class="error" role="alert"></p>
                   </div>
-                  <div class="campo" data-campo="cliente.direccion.cp">
-                    <label for="cp" data-i18n="cp"></label>
-                    <input id="cp" autocomplete="postal-code" inputmode="numeric" maxlength="5" data-formato="cp">
-                    <p class="error" role="alert"></p>
-                  </div>
-                  <div class="campo campo--ancho" data-campo="cliente.direccion.poblacion">
-                    <label for="poblacion" data-i18n="poblacion"></label>
-                    <input id="poblacion" autocomplete="address-level2" maxlength="60" value="Barcelona" data-formato="nombre">
-                    <p class="error" role="alert"></p>
+                </section>
+
+                <div id="banner-error" class="banner-error" role="alert" hidden>
+                  <p id="banner-texto"></p>
+                  <p class="banner-error__llamanos" data-i18n="error.llamanos"></p>
+                  <button type="button" id="reintentar" class="btn btn--secundario" data-i18n="reintentar"></button>
+                </div>
+
+                <div class="asistente__nav">
+                  <button type="button" class="btn btn--fantasma asistente__atras" id="paso-anterior"><span aria-hidden="true">←</span><span class="asistente__destino"></span></button>
+                  <button type="button" class="btn btn--oscuro asistente__sigue" id="paso-siguiente"><span class="asistente__destino"></span><span aria-hidden="true">→</span></button>
+                  <div class="enviar">
+                    <button type="submit" id="enviar" class="btn btn--primario btn--brillo btn--flecha btn--grande" data-i18n="enviar"></button>
+                    <p class="ayuda" data-i18n="notaEnvio"></p>
                   </div>
                 </div>
-              </details>
-              <!-- Trampa anti-spam (honeypot): invisible para personas, los bots la rellenan. -->
-              <div class="trampa" aria-hidden="true">
-                <label for="website">Web</label>
-                <input id="website" name="website" tabindex="-1" autocomplete="off">
               </div>
-              <div class="campo" data-campo="privacidad">
-                <label class="opcion opcion--privacidad">
-                  <input type="checkbox" id="privacidad" required>
-                  <span data-i18n="privacidad"></span>
-                </label>
-                <p class="error" role="alert"></p>
-              </div>
-            </section>
-
-            <div id="banner-error" class="banner-error" role="alert" hidden>
-              <p id="banner-texto"></p>
-              <p class="banner-error__llamanos" data-i18n="error.llamanos"></p>
-              <button type="button" id="reintentar" class="btn btn--secundario" data-i18n="reintentar"></button>
-            </div>
-
-            <div class="enviar">
-              <button type="submit" id="enviar" class="btn btn--primario btn--brillo btn--flecha btn--grande" data-i18n="enviar"></button>
-              <p class="ayuda" data-i18n="notaEnvio"></p>
             </div>
           </form>
 
@@ -210,7 +221,6 @@
       <p>Carrer de la Reforma, 12, 08005 Barcelona · 930 000 000 · presupuestos@reformasbarcelona.example</p>
       <p class="pie__nota" data-i18n="pie"></p>
     </div>
-    <p class="pie__marca" aria-hidden="true">Reformas Barcelona</p>
   </footer>
 </body>
 </html>

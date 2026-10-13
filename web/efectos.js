@@ -1,5 +1,5 @@
 // Efectos visuales de la web: revelado al hacer scroll, titular animado, luces que siguen al cursor,
-// raíl de pasos, cinta de estancias y confeti. Solo decoración: no toca los datos ni el envío a n8n.
+// cinta de estancias y confeti. Solo decoración: no toca los datos ni el envío a n8n.
 import { ETIQUETAS } from './engine/etiquetas.js';
 import { ESTANCIAS } from './engine/catalogo.js';
 import { ICONOS } from './iconos.js';
@@ -21,15 +21,13 @@ function alHacerScroll() {
     const max = document.documentElement.scrollHeight - innerHeight;
     barra.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
     cabecera.classList.toggle('cabecera--scroll', scrollY > 24);
-    actualizarRail();
   });
 }
 addEventListener('scroll', alHacerScroll, { passive: true });
 addEventListener('resize', alHacerScroll);
 
 // ---------- Revelado al entrar en pantalla ----------
-$$('.paso').forEach((el, i) => { el.classList.add('revelar'); el.style.setProperty('--retraso', `${i === 0 ? 0 : 60}ms`); });
-['.enviar', '.pie__contenido'].forEach((s) => $(s)?.classList.add('revelar'));
+['.pie__contenido'].forEach((s) => $(s)?.classList.add('revelar'));
 $$('.hero .revelar').forEach((el, i) => el.style.setProperty('--retraso', `${i * 120}ms`));
 if ('IntersectionObserver' in window && !sinMovimiento) {
   const io = new IntersectionObserver((entradas) => entradas.forEach((e) => {
@@ -120,41 +118,9 @@ function pintarCinta() {
   cinta.innerHTML = items.repeat(4);
 }
 
-// ---------- Raíl de pasos (escritorio) ----------
-const rail = $('#rail');
-const pasos = $$('.paso');
-function pintarRail() {
-  if (!rail) return;
-  rail.innerHTML = `<ol class="rail__lista">${pasos.map((p, i) => {
-    const titulo = p.querySelector('.paso__titulo span:last-child')?.textContent || '';
-    return `<li class="rail__item" data-paso="${i}"><span class="rail__num">0${i + 1}</span><span>${titulo}</span></li>`;
-  }).join('')}</ol>`;
-  actualizarRail();
-}
-function actualizarRail() {
-  const lista = rail?.querySelector('.rail__lista');
-  if (!lista || !pasos.length) return;
-  const mitad = innerHeight * 0.45;
-  let activo = 0;
-  pasos.forEach((p, i) => { if (p.getBoundingClientRect().top < mitad) activo = i; });
-  const primero = pasos[0].getBoundingClientRect();
-  const ultimo = pasos[pasos.length - 1].getBoundingClientRect();
-  const avance = Math.min(1, Math.max(0, (mitad - primero.top) / (ultimo.bottom - primero.top)));
-  lista.style.setProperty('--avance', avance.toFixed(3));
-  $$('.rail__item', lista).forEach((li, i) => {
-    li.classList.toggle('rail__item--activo', i === activo);
-    li.classList.toggle('rail__item--hecho', i < activo);
-  });
-}
-rail?.addEventListener('click', (ev) => {
-  const li = ev.target.closest('[data-paso]');
-  if (li) pasos[Number(li.dataset.paso)]?.scrollIntoView({ behavior: sinMovimiento ? 'auto' : 'smooth', block: 'start' });
-});
-
 // Al cambiar de idioma, la cinta y el raíl se vuelven a pintar con los textos nuevos.
-new MutationObserver(() => { pintarCinta(); pintarRail(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+new MutationObserver(pintarCinta).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 pintarCinta();
-pintarRail();
 
 // ---------- Estancia nueva: entra con animación ----------
 let numEstancias = $$('.estancia').length;
